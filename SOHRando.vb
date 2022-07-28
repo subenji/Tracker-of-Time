@@ -46,7 +46,7 @@
         RSK_SHUFFLE_CHEST_MINIGAME
     End Enum
 
-    Private sohSaveContextDict As New Dictionary(Of Integer, Integer) From {
+    Private ReadOnly sohSaveContextDict As New Dictionary(Of Integer, Integer) From {
         {&H0, &H0}, ' Entrance Index
         {&H4, &H4}, ' link Age
         {&HA, &H8}, ' Cutscene Index
@@ -72,7 +72,7 @@
     '{&H11A677, &HA6}, ' Pieces of Heart
     '{&H11A6A2, &HD4}, ' gold skulltula tokens
 
-    Private sohExpansionDict As New Dictionary(Of Integer, Integer) From {
+    Private ReadOnly sohExpansionDict As New Dictionary(Of Integer, Integer) From {
         {&H400008, &H0} ' rando version check
     }
 

@@ -62,7 +62,7 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>7C2659920886323FAC55346AC1E16786639AAE87</ManifestCertificateThumbprint>
@@ -77,6 +77,10 @@
     <AssemblyOriginatorKeyFile>Tracker of Time_TemporaryKey.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="dotNetMemoryScan, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>libs\dotNetMemoryScan.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -126,6 +130,9 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="SOHRando.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="trackerKey.vb" />
   </ItemGroup>
   <ItemGroup>
@@ -140,6 +147,15 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include=".vs\Tracker of Time\FileContentIndex\20e67ad5-9f83-4a83-a58a-e733aa312096.vsidx" />
+    <None Include=".vs\Tracker of Time\FileContentIndex\2ff5ec39-b1f0-4d67-93c1-16ace59fc781.vsidx" />
+    <None Include=".vs\Tracker of Time\FileContentIndex\befc422d-b700-40c0-b891-233d217572ed.vsidx" />
+    <None Include=".vs\Tracker of Time\FileContentIndex\d4decd8f-3304-401b-b2eb-9748ce131227.vsidx" />
+    <None Include=".vs\Tracker of Time\FileContentIndex\read.lock" />
+    <None Include="bin\Debug\Tracker of Time.exe.config" />
+    <None Include="bin\Release\Tracker of Time.exe.config" />
+    <None Include="bin\Release\Tracker of Time.vshost.exe.config" />
+    <None Include="bin\Release\Tracker of Time.xml.orig" />
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
@@ -230,6 +246,15 @@
     <None Include="additional\naryusLove.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="bin\Debug\dotNetMemoryScan.dll" />
+    <Content Include="bin\Debug\Tracker of Time.exe" />
+    <Content Include="bin\Debug\Tracker of Time.pdb" />
+    <Content Include="bin\Debug\Tracker of Time.xml" />
+    <Content Include="bin\Release\Tracker of Time.exe" />
+    <Content Include="bin\Release\Tracker of Time.pdb" />
+    <Content Include="bin\Release\Tracker of Time.vshost.exe" />
+    <Content Include="bin\Release\Tracker of Time.xml" />
+    <Content Include="libs\dotNetMemoryScan.dll" />
     <None Include="additional\mapHW2.png" />
     <None Include="additional\trialWater.png" />
     <None Include="additional\trialSpirit.png" />
@@ -426,6 +451,7 @@
     <None Include="additional\backgroundEquipment.bmp" />
     <None Include="additional\backgroundInventory.bmp" />
     <None Include="additional\backgroundDungeonItems.bmp" />
+    <Content Include=".gitattributes" />
     <Content Include="additional\bottleBigPoe.bmp" />
     <Content Include="additional\bottleBlueFire.bmp" />
     <Content Include="additional\bottleBluePotion.bmp" />
@@ -439,6 +465,11 @@
     <Content Include="additional\bottleLonLonMilkHalf.bmp" />
     <Content Include="additional\bottlePoe.bmp" />
     <Content Include="additional\bottleRedPotion.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=".vs\Tracker of Time\FileContentIndex\merges\" />
+    <Folder Include=".vs\Tracker of Time\v17\" />
+    <Folder Include="obj\Debug\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
