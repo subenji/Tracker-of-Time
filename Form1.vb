@@ -2420,12 +2420,15 @@ Public Class frmTrackerOfTime
                 If emulator = String.Empty Then attachToM64P()
                 If emulator = String.Empty Then attachToRetroArch()
                 If emulator = String.Empty Then attachToModLoader64()
+                If emulator = String.Empty Then AttachToSoH()
             End If
             If Not emulator = String.Empty Then
                 Me.Text = "Tracker of Time v" & VER & " (" & emulator & ")"
                 Select Case LCase(emulator)
                     Case "emuhawk", "rmg", "mupen64plus-gui", "retroarch - mupen64plus", "retroarch - parallel", "modloader64-gui"
                         emulator = "variousX64"
+                    Case "soh"
+                        emulator = "soh"
                 End Select
             End If
         End If
@@ -3348,6 +3351,31 @@ Public Class frmTrackerOfTime
         Select Case emulator
             Case String.Empty
                 Exit Function
+            Case "soh"
+                TranslateOffsetForSOH(offsetAddress)
+                If Not offsetAddress = 0 Then
+                    Try
+                        Select Case bitType
+                            Case 0 To 7
+                                goRead = ReadMemory(Of Byte)(romAddrStart64 + offsetAddress)
+                            Case 8 To 15
+                                goRead = ReadMemory(Of Int16)(romAddrStart64 + offsetAddress)
+                                'Dim tmp = BitConverter.GetBytes(goRead)
+                                'Array.Reverse(tmp)
+                                'goRead = BitConverter.ToInt16(tmp, 0)
+                            Case Else
+                                goRead = ReadMemory(Of Integer)(romAddrStart64 + offsetAddress)
+                                Dim tmp = BitConverter.GetBytes(goRead)
+                                Array.Reverse(tmp)
+                                goRead = BitConverter.ToInt32(tmp, 0)
+                        End Select
+                    Catch ex As Exception
+                        stopScanning()
+                        If Not ex.Message = "External component has thrown an exception." Then
+                            MessageBox.Show("goRead Problem: " & ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                        End If
+                    End Try
+                End If
             Case "variousX64"
                 Try
                     Select Case bitType
@@ -3525,6 +3553,23 @@ Public Class frmTrackerOfTime
     End Sub
 
     Private Function checkZeldaz() As Byte
+        ' soh handling, as it doesn't have the ZELDAZ magic string
+        If emulator = "soh" Then
+            checkZeldaz = 0
+            Dim zeldazchk As Long = ReadMemory(Of Long)(sohSaveCtx + &H54C0) ' childAltarText
+            Dim gamemodechk As Byte = ReadMemory(Of Byte)(sohSaveCtx + &H1320) ' gameMode
+
+            If zeldazchk = &H7469726970532033 Then ' "3 Spirit"
+                ' Console.WriteLine("read childAltarText")
+                checkZeldaz = 1 ' half-true - game is at least loaded
+
+                If checkZeldaz = 1 And gamemodechk = &H0 Then
+                    checkZeldaz = 2 ' full-true - game is loaded and playing
+                End If
+            End If
+            Return checkZeldaz
+        End If
+
         ' Checks for the 'ZELDAZ' within the memory to make sure you are playing Ocarina of Time, and that it is still reading the correct memory region
         checkZeldaz = 0
         Dim zeldaz1 As Integer = goRead(&H11A5EC)
@@ -3558,18 +3603,21 @@ Public Class frmTrackerOfTime
             If emulator = String.Empty Then attachToM64P()
             If emulator = String.Empty Then attachToRetroArch()
             If emulator = String.Empty Then attachToModLoader64()
+            If emulator = String.Empty Then attachToSoH()
         End If
         If Not emulator = String.Empty Then
             Me.Text = "Tracker of Time v" & VER & " (" & emulator & ")"
             Select Case LCase(emulator)
                 Case "emuhawk", "rmg", "mupen64plus-gui", "retroarch - mupen64plus", "retroarch - parallel", "modloader64-gui"
                     emulator = "variousX64"
+                Case "soh"
+                    emulator = "soh"
             End Select
         End If
         If emulator = String.Empty Then Exit Sub
         getRandoVer()
         rtbOutputLeft.Clear()
-        rtbOutputLeft.AppendText("Attached to " & emulator & vbCrLf & "Starting address: 0x" & Hex(CInt(IIf(IS_64BIT, romAddrStart64, romAddrStart))) & vbCrLf & "Randomizer Version: " & randoVer & vbCrLf & vbCrLf)
+        rtbOutputLeft.AppendText("Attached to " & emulator & vbCrLf & "Starting address: 0x" & Hex(CLng(IIf(IS_64BIT, romAddrStart64, romAddrStart))) & vbCrLf & "Randomizer Version: " & randoVer & vbCrLf & vbCrLf)
         scanEmulator(emulator)
         Dim zeldaz1 As Integer = goRead(&H11A5EC)
         Dim zeldaz2 As Integer = goRead(&H11A5F0 + 2, 15)
@@ -3709,37 +3757,37 @@ Public Class frmTrackerOfTime
         'For Each i As Integer In aAddresses
         'rtbAddLine(Hex(i))
         'Next
-        'debugInfo()
+        debugInfo()
         'Dim test As Integer = goRead(&H1D8BEE, 1)
         'MsgBox(test.ToString)
 
-        If False Then
-            Dim outputXX As String = "Visited:"
-            For i = 0 To aVisited.Length - 1
-                outputXX = outputXX & vbCrLf & aVisited(i).ToString
-            Next
-            outputXX = outputXX & vbCrLf & vbCrLf
-            For i = 0 To aExitMap.Length - 1
-                For ii = 0 To aExitMap(i).Length - 1
-                    outputXX = outputXX & vbCrLf & "aExitMap(" & i.ToString & ")(" & ii.ToString & "): " & aExitMap(i)(ii).ToString
-                Next
-            Next
-            Clipboard.SetText(outputXX)
-        End If
+        'If False Then
+        'Dim outputXX As String = "Visited:"
+        'For i = 0 To aVisited.Length - 1
+        'outputXX = outputXX & vbCrLf & aVisited(i).ToString
+        'Next
+        'outputXX = outputXX & vbCrLf & vbCrLf
+        'For i = 0 To aExitMap.Length - 1
+        'For ii = 0 To aExitMap(i).Length - 1
+        'outputXX = outputXX & vbCrLf & "aExitMap(" & i.ToString & ")(" & ii.ToString & "): " & aExitMap(i)(ii).ToString
+        'Next
+        'Next
+        'Clipboard.SetText(outputXX)
+        'End If
 
 
-        If False Then
-            Dim outputXX As String = String.Empty
-            outputXX = "Adult:"
-            For i = 0 To aReachA.Length - 1
-                outputXX = outputXX & vbCrLf & i.ToString & ": " & aReachA(i).ToString
-            Next
-            outputXX = outputXX & vbCrLf & vbCrLf & "Young:"
-            For i = 0 To aReachY.Length - 1
-                outputXX = outputXX & vbCrLf & i.ToString & ": " & aReachY(i).ToString
-            Next
-            Clipboard.SetText(outputXX)
-        End If
+        'If False Then
+        'Dim outputXX As String = String.Empty
+        'outputXX = "Adult:"
+        'For i = 0 To aReachA.Length - 1
+        'outputXX = outputXX & vbCrLf & i.ToString & ": " & aReachA(i).ToString
+        'Next
+        'outputXX = outputXX & vbCrLf & vbCrLf & "Young:"
+        'For i = 0 To aReachY.Length - 1
+        'outputXX = outputXX & vbCrLf & i.ToString & ": " & aReachY(i).ToString
+        'Next
+        'Clipboard.SetText(outputXX)
+        'End If
     End Sub
     Private Sub changeTheme(Optional theme As Byte = 0)
         Dim cBack As Color = Control.DefaultBackColor
@@ -3797,8 +3845,10 @@ Public Class frmTrackerOfTime
         'updateSettingsPanel()
     End Sub
     Private Sub resizeForm()
+#If Not DEBUG Then
         btnTest.Visible = False
         Button2.Visible = False
+#End If
 
         Dim setHeight As Integer = 990
         If My.Settings.setShortForm Then
@@ -15799,6 +15849,24 @@ Public Class frmTrackerOfTime
     End Sub
     Private Function decodeLetter(ByRef valLetter As Byte) As String
         decodeLetter = String.Empty
+        If emulator = "soh" Then
+            Select Case valLetter
+                Case 0 To 9
+                    ' 0 to 9, 48 to 57, so +48, but instead just turn it a string
+                    decodeLetter = valLetter.ToString
+                Case &HA To &H23 ' A-Z
+                    decodeLetter = Chr(valLetter + 55)
+                Case &H24 To &H3D ' a-z
+                    decodeLetter = Chr(valLetter + 61)
+                Case &H3E
+                    decodeLetter = " "
+                Case &H3F
+                    decodeLetter = "-"
+                Case &H40
+                    decodeLetter = "."
+            End Select
+            Return decodeLetter
+        End If
         Select Case valLetter
             Case 0 To 9
                 ' 0 to 9, 48 to 57, so +48, but instead just turn it a string
@@ -16152,6 +16220,7 @@ Public Class frmTrackerOfTime
         'OOTR 6.2.72:       80400020 80400834 8040AA7C 80400CD0
         'Roman 6.2.43:      80400020 80400834 8040ACC4 80400CD0
         'ROMAN 6.2.72-R2:   80400020 80400834 8040B11C 80400CD0
+        'soh Roy Alfa:      N/A      N/A      56494557 N/ A      - Not actually present, soh PC port doesn't replicate the N64 RAM map, just redirect to a known constant
 
         Select Case readC
             Case "80409FD4"
@@ -16244,6 +16313,9 @@ Public Class frmTrackerOfTime
                 aAddresses(8) = &H400CC4    ' Cow Shuffle
                 aAddresses(18) = &H400CCD   ' Overworld ER
                 aAddresses(19) = &H400CCE   ' Dungeon ER
+            Case "56494557"
+                ' soh Roy Alfa PR-416 #125~? - should work for all Roy Alfa versions
+
         End Select
     End Sub
     Private Sub getRainbowBridge()
