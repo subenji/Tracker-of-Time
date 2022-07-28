@@ -113,8 +113,10 @@
             Console.WriteLine("Found VIEW from AOB!" & vbCrLf)
 
             ' SaveContext
-            Dim ep As IntPtr = AOB.scan_module(target, "soh.exe", "41 8B DE 4C 8D 3D ?? ?? ?? ?? 0F 1F 40 00") + 6
+            ' Dim ep As IntPtr = AOB.scan_module(target, "soh.exe", "41 8B DE 4C 8D 3D ?? ?? ?? ?? 0F 1F 40 00")
+            Dim ep As IntPtr = AOB.scan_module(target, "soh.exe", "8B 05 ?? ?? ?? ?? 83 F8 FF")
             If ep <> IntPtr.Zero Then
+                ep += 2
                 Dim offset = ReadMemory(Of Integer)(ep)
                 Console.WriteLine($"gSaveContextOffset: 0x{Hex(offset)}")
                 gSaveContext = IntPtr.Add(ep + 4, offset)
@@ -125,8 +127,9 @@
             End If
 
             ' GlobalContext
-            Dim ep2 = AOB.scan_module(target, "soh.exe", "4C 8B 35 ?? ?? ?? ?? 4D 85 F6 75 61") + 3
+            Dim ep2 = AOB.scan_module(target, "soh.exe", "4C 8B 35 ?? ?? ?? ?? 4D 85 F6 75 61")
             If ep2 <> IntPtr.Zero Then
+                ep2 += 3
                 Dim offset = ReadMemory(Of Integer)(ep2)
                 gGlobalContext = IntPtr.Add(ep2 + 4, offset)
                 Console.WriteLine($"gGlobalContext test: gGameContext: 0x{Hex(gGlobalContext.ToInt64)}")
@@ -163,6 +166,8 @@
                         y = x + 4
                     Case Else
                         If Not sohSaveContextDict.TryGetValue(offset, y) Then
+                            Console.WriteLine($"goRead attempted to read SaveData: {Hex(offset)} - unhandled")
+                        Else
                             Console.WriteLine($"goRead attempted to read SaveData: {Hex(offset)} - Translating to {Hex(x)}, returning {Hex(y)}")
                         End If
                 End Select
