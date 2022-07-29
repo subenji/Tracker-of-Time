@@ -4646,9 +4646,14 @@ Public Class frmTrackerOfTime
                                 'goRead = BitConverter.ToInt16(tmp, 0)
                             Case Else
                                 goRead = ReadMemory(Of Integer)(romAddrStart64 + offsetAddress)
+                                '  reverses 4 bytes order  ---- seems to work correctly for dungeon maps/compasses, except forest temple keys and GT big key
                                 Dim tmp = BitConverter.GetBytes(goRead)
                                 Array.Reverse(tmp)
                                 goRead = BitConverter.ToInt32(tmp, 0)
+                                '  swaps low bytes and high bytes  ----- seems to work correctly for swords/shields/tunics
+                                'Dim tmp = BitConverter.GetBytes(goRead)
+                                'Dim tmp2 = {tmp(2), tmp(3), tmp(0), tmp(1)}
+                                'goRead = BitConverter.ToInt32(tmp2, 0)
                         End Select
                     Catch ex As Exception
                         stopScanning()

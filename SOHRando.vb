@@ -73,7 +73,7 @@
     '{&H11A6A2, &HD4}, ' gold skulltula tokens
 
     Private ReadOnly sohExpansionDict As New Dictionary(Of Integer, Integer) From {
-        {&H400008, &H0} ' rando version check
+        {&H400008, &H0} ' rando version check - should be used to determine versions of soh but for now it's a stub
     }
 
     Private Sub AttachToSoH()
@@ -113,7 +113,6 @@
             Console.WriteLine("Found VIEW from AOB!" & vbCrLf)
 
             ' SaveContext
-            ' Dim ep As IntPtr = AOB.scan_module(target, "soh.exe", "41 8B DE 4C 8D 3D ?? ?? ?? ?? 0F 1F 40 00")
             Dim ep As IntPtr = AOB.scan_module(target, "soh.exe", "8B 05 ?? ?? ?? ?? 83 F8 FF")
             If ep <> IntPtr.Zero Then
                 ep += 2
@@ -140,7 +139,7 @@
 
 
             ' We got what we need, set globals
-            romAddrStart64 = gSaveContext.ToInt64
+            romAddrStart64 = gSaveContext.ToInt64 ' this is v much not the start of the "rom" address, but it'll do as we usually offset from savecontext
             sohViewCtx = entryPoint.ToInt64
             sohSaveCtx = gSaveContext.ToInt64
             sohGlobalCtx = gGlobalContext.ToInt64
@@ -179,11 +178,12 @@
             Case &H1DA9F0 To &H3FFFFF ' Higher RAM
                 Console.WriteLine($"goRead attempted to read higher RAM area: {Hex(offset)} - unhandled")
                 offset = 0
-            Case Is >= &H400000 ' Beyond normal 4MB RAM, Rando data
-                Dim y As Integer = 0
+            Case Is >= &H400000 ' Beyond normal 4MB RAM, Rando data, version checking
+                Dim y As Integer = 0 ' only one version of soh to care about for now
                 sohExpansionDict.TryGetValue(offset, y)
-                Console.WriteLine($"goRead attempted to read Epansion RAM area: {Hex(offset)}")
-                offset = -(romAddrStart64 - sohViewCtx)
+                Console.WriteLine($"goRead attempted to read Expansion RAM area: {Hex(offset)}")
+                offset = -(sohSaveCtx - sohViewCtx) ' stub - we currently have no other versions to account for, so just get the RAM address of the VIEW string constant
+                ' getRandoVer checks if it can read 'VIEW' from RAM using this offset and assumes we got a good soh version if it can
         End Select
     End Sub
 End Class
