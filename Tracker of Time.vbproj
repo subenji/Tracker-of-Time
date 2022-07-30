@@ -62,7 +62,7 @@
     <OptionInfer>On</OptionInfer>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>7C2659920886323FAC55346AC1E16786639AAE87</ManifestCertificateThumbprint>
@@ -74,7 +74,8 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>Tracker of Time_TemporaryKey.pfx</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -126,6 +127,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <Compile Include="obj\Debug\.NETFramework,Version=v4.5.AssemblyAttributes.vb" />
     <Compile Include="soh.vb" />
     <Compile Include="trackerKey.vb" />
   </ItemGroup>
@@ -141,6 +143,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include=".vs\Tracker of Time\FileContentIndex\01159413-c545-4849-bdd8-b79cfe3decbc.vsidx" />
+    <None Include=".vs\Tracker of Time\FileContentIndex\5df26a70-9662-4a18-92be-516049bcbd33.vsidx" />
+    <None Include=".vs\Tracker of Time\FileContentIndex\9eeb2307-8f7d-4260-9bb9-e241f0e7e315.vsidx" />
+    <None Include=".vs\Tracker of Time\FileContentIndex\f49db13f-f062-4002-98d0-650ed58b7f5f.vsidx" />
+    <None Include=".vs\Tracker of Time\FileContentIndex\read.lock" />
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
@@ -151,7 +158,6 @@
       <LastGenOutput>Settings.Designer.vb</LastGenOutput>
     </None>
     <None Include="App.config" />
-    <None Include="Tracker of Time_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -427,6 +433,7 @@
     <None Include="additional\backgroundEquipment.bmp" />
     <None Include="additional\backgroundInventory.bmp" />
     <None Include="additional\backgroundDungeonItems.bmp" />
+    <Content Include=".gitattributes" />
     <Content Include="additional\bottleBigPoe.bmp" />
     <Content Include="additional\bottleBlueFire.bmp" />
     <Content Include="additional\bottleBluePotion.bmp" />
@@ -440,6 +447,11 @@
     <Content Include="additional\bottleLonLonMilkHalf.bmp" />
     <Content Include="additional\bottlePoe.bmp" />
     <Content Include="additional\bottleRedPotion.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=".vs\Tracker of Time\FileContentIndex\merges\" />
+    <Folder Include=".vs\Tracker of Time\v17\" />
+    <Folder Include="bin\Debug\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
