@@ -1011,12 +1011,16 @@ Public Class frmTrackerOfTime
         End With
     End Sub
     Private Sub getHearts()
-        If isSoH Then Exit Sub
+        'If isSoH Then Exit Sub
+        Dim enhFlagAddr As Integer = If(isSoH, soh.SAV(&H36 - 2), &H11A60C)
+        Dim bHeartsAddr As Integer = If(isSoH, soh.SAV(&H28), &H11A5FC)
+        Dim bPOHAddr As Integer = If(isSoH, soh.SAV(&HA8), &H11A674)
+
         ' Check if player has enhanced defence
-        Dim isEnhanced As Boolean = CBool(IIf(goRead(&H11A60C + 2, 1) > 0, True, False))
+        Dim isEnhanced As Boolean = CBool(IIf(goRead(enhFlagAddr + 2, 1) > 0, True, False))
 
         ' Get max heart container value, divide by 16 to undo their 16x multiplyer
-        Dim bHearts As Byte = CByte(goRead(&H11A5FC, 15) / 16)
+        Dim bHearts As Byte = CByte(goRead(bHeartsAddr, 15) / 16)
         maxLife = bHearts
 
         ' Just a percaution, limit hearts to 99, even though 20 is the max. Never know what people may do to their save file 
@@ -1049,7 +1053,11 @@ Public Class frmTrackerOfTime
         End With
 
         ' Now for the heart pieces
-        bHearts = CByte(goRead(&H11A674 + 3, 1))
+        If isSoH Then
+            bHearts = CByte(goRead(bPOHAddr) >> 24)
+        Else
+            bHearts = CByte(goRead(bPOHAddr + 3, 1))
+        End If
 
         With pbxPoH
             ' If not visible, make visible
@@ -3804,7 +3812,7 @@ Public Class frmTrackerOfTime
                 ' MK Entrance
                 exit2label = "MK Entrance"
                 reachMap = 197
-            Case "063", "067", "07E", "0B1", "16D", "1CD", "1D1", "1D5", "25A", "25E", "262", "263", "29E", "29F", "2A2", "388", _
+            Case "063", "067", "07E", "0B1", "16D", "1CD", "1D1", "1D5", "25A", "25E", "262", "263", "29E", "29F", "2A2", "388",
                     "3B8", "3BC", "3C0", "43B", "507", "528", "52C", "530"
                 ' MK
                 exit2label = "MK"
@@ -3842,7 +3850,7 @@ Public Class frmTrackerOfTime
                 ' HC Zelda's Courtyard
                 exit2label = "Zelda's Courtyard"
                 reachMap = 13
-            Case "03B", "072", "0B7", "0DB", "195", "201", "2FD", "2A6", "345", "349", "34D", "351", "384", "39C", "3EC", "44B", _
+            Case "03B", "072", "0B7", "0DB", "195", "201", "2FD", "2A6", "345", "349", "34D", "351", "384", "39C", "3EC", "44B",
                     "453", "463", "4EE", "4FF", "550", "5C8", "5DC"
                 ' KV Main
                 exit2label = "KV"
@@ -4163,7 +4171,7 @@ Public Class frmTrackerOfTime
                 If emulator = String.Empty Then attachToM64P()
                 If emulator = String.Empty Then attachToRetroArch()
                 If emulator = String.Empty Then attachToModLoader64()
-                'If emulator = String.Empty Then attachToSoH()
+                If emulator = String.Empty Then attachToSoH()
             End If
             If Not emulator = String.Empty Then
                 Me.Text = "Tracker of Time v" & VER & " (" & emulator & ")"
@@ -5250,7 +5258,7 @@ Public Class frmTrackerOfTime
     End Function
     Private Function isLoadedGame() As Boolean
         Dim addrLoaded As Integer = &H11B92C
-        If isSoH Then addrLoaded = &HEC8600
+        If isSoH Then addrLoaded = soh.SAV(&H1320)
         ' Checks the game state (2=game menu, 1=title screen, 0=gameplay), if 0 and a successful ZELDAZ check, then true
         isLoadedGame = False
         If goRead(addrLoaded, 1) = 0 And checkZeldaz() = 2 Then isLoadedGame = True
@@ -6496,12 +6504,12 @@ Public Class frmTrackerOfTime
                         End If
                     Else
                         If (aReachY(60) And item("deku shield")) Or (aReachA(60) And item("hylian shield")) Then addArea(61, asAdult)
-                        If (((aReachY(60) And canBurnYoung()) Or (aReachA(60) And (canBurnAdult() Or item("bow")))) And _
-                                ((aReachY(60) And item("slingshot")) Or (aReachA(60) And item("bow")))) Or _
+                        If (((aReachY(60) And canBurnYoung()) Or (aReachA(60) And (canBurnAdult() Or item("bow")))) And
+                                ((aReachY(60) And item("slingshot")) Or (aReachA(60) And item("bow")))) Or
                             (Not asAdult And (My.Settings.setDekuB1Skip Or aReachA(60) Or checkLoc("10316"))) Then addArea(62, asAdult)
                         ' TODO: False is placeholder for "(logic_deku_b1_webs_with_bow and can_use(Bow)))"
-                        If (((aReachY(60) And canBurnYoung()) Or (aReachA(60) And canBurnAdult())) Or _
-                                False) And _
+                        If (((aReachY(60) And canBurnYoung()) Or (aReachA(60) And canBurnAdult())) Or
+                                False) And
                             (Not asAdult And (My.Settings.setDekuB1Skip Or aReachA(60) Or checkLoc("10316"))) Then addArea(63, asAdult)
                     End If
                 Else
@@ -6522,7 +6530,7 @@ Public Class frmTrackerOfTime
                             If My.Settings.setDekuB1Skip Or checkLoc("10316") Then addArea(68, asAdult)
                         End If
                     Else
-                        If ((aReachY(60) And item("slingshot")) Or (aReachA(60) And item("bow"))) And _
+                        If ((aReachY(60) And item("slingshot")) Or (aReachA(60) And item("bow"))) And
                             ((aReachY(60) And canBurnYoung()) Or (aReachA(60) And (canBurnAdult() Or item("bow")))) Then addArea(64, asAdult)
                         If ((aReachY(60) And item("slingshot")) Or (aReachA(60) And item("bow"))) And ((aReachY(60) And canBurnYoung()) Or (aReachA(60) And canBurnAdult())) Then addArea(65, asAdult)
                         If My.Settings.setDekuB1Skip Or aReachA(60) Or checkLoc("10316") Then addArea(68, asAdult)
@@ -6541,7 +6549,7 @@ Public Class frmTrackerOfTime
                     If Not asAdult And item("deku shield") Or item("hylian shield") Then addArea(66, asAdult)
                 Else
                     ' TODO: False is placeholder for "logic_deku_mq_log"
-                    If False Or (Not asAdult And (item("deku shield") Or item("hylian shield"))) Or _
+                    If False Or (Not asAdult And (item("deku shield") Or item("hylian shield"))) Or
                         (asAdult And (item("longshot") Or (item("hookshot") And item("iron boots")))) Then addArea(66, asAdult)
                 End If
             Case 66
@@ -6550,8 +6558,8 @@ Public Class frmTrackerOfTime
                 If iER < 2 Then
                     If Not asAdult And (item("deku stick") Or item("din's fire")) And (item("kokiri sword") Or canProjectile(0) Or (item("deku nuts") And item("deku stick"))) Then addArea(67, asAdult)
                 Else
-                    If ((aReachY(66) And item("deku stick")) Or item("din's fire") Or _
-                        (aReachA(65) And item("fire arrows"))) And _
+                    If ((aReachY(66) And item("deku stick")) Or item("din's fire") Or
+                        (aReachA(65) And item("fire arrows"))) And
                     (aReachA(66) Or item("kokiri sword") Or (aReachY(67) And canProjectile(0)) Or (item("deku nuts") And item("deku stick"))) Then addArea(67, asAdult)
                 End If
             Case 67
@@ -6764,7 +6772,7 @@ Public Class frmTrackerOfTime
 
                     ' FoT MQ Keys in Dungeon
                     If asAdult And My.Settings.setSmallKeys = 0 Then
-                        If item("bow") And item("song of time") And ((item("lift") And Not My.Settings.setFoTMQPuzzle) Or (My.Settings.setFoTMQPuzzle And item("bombchu") And item("hookshot"))) And _
+                        If item("bow") And item("song of time") And ((item("lift") And Not My.Settings.setFoTMQPuzzle) Or (My.Settings.setFoTMQPuzzle And item("bombchu") And item("hookshot"))) And
                             ((item("hover boots") And (item("hookshot") Or Not My.Settings.setFoTBackdoor)) Or Not My.Settings.setFoTMQTwisted) Then
                             canDungeon(3) = True
                         Else
@@ -6886,7 +6894,7 @@ Public Class frmTrackerOfTime
 
                     ' FiT Keys in Dungeon
                     If asAdult And My.Settings.setSmallKeys = 0 Then
-                        If item("goron tunic") And item("hammer") And item("bow") And canExplode() And (item("lift") Or My.Settings.setFiTClimb) And _
+                        If item("goron tunic") And item("hammer") And item("bow") And canExplode() And (item("lift") Or My.Settings.setFiTClimb) And
                             (item("scarecrow") Or (My.Settings.setFiTScarecrow And item("longshot"))) And (item("hover boots") Or Not My.Settings.setFiTMaze) Then
                             canDungeon(4) = True
                         Else
@@ -6927,7 +6935,7 @@ Public Class frmTrackerOfTime
             Case 109
                 ' FiT: Big Lava Room to Lower, Middle
                 addArea(108, asAdult)
-                If asAdult And item("goron tunic") And dungeonKeyCounter(4, "293024") And (item("lift") Or My.Settings.setFiTClimb) And _
+                If asAdult And item("goron tunic") And dungeonKeyCounter(4, "293024") And (item("lift") Or My.Settings.setFiTClimb) And
                     (canExplode() Or item("bow") Or item("hookshot")) Then addArea(110, asAdult)
             Case 110
                 ' FiT: Middle to Upper
@@ -7009,10 +7017,10 @@ Public Class frmTrackerOfTime
 
                 If asAdult Then
                     If (item("bow") Or item("din's fire") Or (dungeonKeyCounter(5, "06") And item("hookshot"))) And item("zelda's lullaby") Then addArea(125, asAdult)
-                    If item("zelda's lullaby") And (item("hookshot") Or item("hover boots")) And _
+                    If item("zelda's lullaby") And (item("hookshot") Or item("hover boots")) And
                         (My.Settings.setWaTCrackNothing Or (My.Settings.setWaTCrackHovers And item("hover boots"))) Then addArea(123, asAdult)
                     If dungeonKeyCounter(5, "01") And (item("longshot") Or (My.Settings.setWaTBKR And item("hover boots"))) And (item("iron boots") Or item("zelda's lullaby")) Then addArea(122, asAdult)
-                    If item("zelda's lullaby") And item("lift") And _
+                    If item("zelda's lullaby") And item("lift") And
                         (item("iron boots") And item("hookshot")) Or (My.Settings.setWaTDragonDive And (item("bombchu") Or item("bow") Or item("hookshot")) And (item("dive") Or item("iron boots"))) _
                         Then addArea(124, asAdult)
                 Else
@@ -7049,7 +7057,7 @@ Public Class frmTrackerOfTime
 
                     ' SpT Keys in Dungeon
                     If aReachY(132) And aReachA(132) And My.Settings.setSmallKeys = 0 Then
-                        If item("lift", 2) And canExplode() And item("hookshot") And item("zelda's lullaby") And item("hover boots") And item("mirror shield") And (My.Settings.setSpTLensless Or item("lens of truth")) And _
+                        If item("lift", 2) And canExplode() And item("hookshot") And item("zelda's lullaby") And item("hover boots") And item("mirror shield") And (My.Settings.setSpTLensless Or item("lens of truth")) And
                             canProjectile(1) And (item("boomerang") Or item("slingshot")) And (item("din's fire") Or item("fire arrows")) Then
                             canDungeon(6) = True
                         Else
@@ -7078,8 +7086,8 @@ Public Class frmTrackerOfTime
 
                     ' SpT MQ Keys in Dungeon
                     If aReachY(132) And aReachA(132) And My.Settings.setSmallKeys = 0 Then
-                        If item("longshot") And item("bombchus") And item("slingshot") And item("din's fire") And item("zelda's lullaby") And item("song of time") And item("hammer") And item("mirror shield") And item("bow") And _
-                            (My.Settings.setSpTLensless Or item("lens of truth")) And (item("fire arrows") Or My.Settings.setSpTMQLowAdult) And _
+                        If item("longshot") And item("bombchus") And item("slingshot") And item("din's fire") And item("zelda's lullaby") And item("song of time") And item("hammer") And item("mirror shield") And item("bow") And
+                            (My.Settings.setSpTLensless Or item("lens of truth")) And (item("fire arrows") Or My.Settings.setSpTMQLowAdult) And
                             (item("deku sticks") Or item("kokiri sword") Or item("bombs")) Then
                             canDungeon(6) = True
                         Else
@@ -7121,8 +7129,8 @@ Public Class frmTrackerOfTime
                 addArea(50, asAdult)
             Case 139
                 ' SpT: Beyond Central Locked Door to Beyond Final Locked Door
-                If asAdult And (dungeonKeyCounter(6, "132728") Or (canSpiritShortcut() And dungeonKeyCounter(6, "2728"))) And _
-                    (My.Settings.setSpTWall Or item("longshot") Or item("bombchu") Or _
+                If asAdult And (dungeonKeyCounter(6, "132728") Or (canSpiritShortcut() And dungeonKeyCounter(6, "2728"))) And
+                    (My.Settings.setSpTWall Or item("longshot") Or item("bombchu") Or
                      ((item("bombs") Or item("deku nuts") Or item("din's fire")) And (item("bow") Or item("hookshot") Or item("hammer")))) Then addArea(140, asAdult)
             Case 140
                 ' SpT: Beyond Final Locked Door to Boss Platform
@@ -7168,8 +7176,8 @@ Public Class frmTrackerOfTime
 
                     ' ShT Keys in Dungeon
                     If asAdult And My.Settings.setSmallKeys = 0 Then
-                        If item("hover boots") And item("hookshot") And item("zelda's lullaby") And item("din's fire") And canExplode() And (item("lift") Or My.Settings.setShTUmbrella) And _
-                            (item("lens of truth") Or (My.Settings.setShTLensless And My.Settings.setShTPlatform)) And _
+                        If item("hover boots") And item("hookshot") And item("zelda's lullaby") And item("din's fire") And canExplode() And (item("lift") Or My.Settings.setShTUmbrella) And
+                            (item("lens of truth") Or (My.Settings.setShTLensless And My.Settings.setShTPlatform)) And
                             ((item("bow") Or item("scarecrow", 2)) And (item("bombchus") Or Not My.Settings.setShTStatue)) Then
                             canDungeon(7) = True
                         Else
@@ -7198,7 +7206,7 @@ Public Class frmTrackerOfTime
 
                     ' ShT MQ Keys in Dungeon
                     If asAdult And My.Settings.setSmallKeys = 0 Then
-                        If item("bow") And item("hover boots") And item("longshot") And item("song of time") And item("zelda's lullaby") And canExplode() And (item("lift") Or My.Settings.setShTUmbrella) And _
+                        If item("bow") And item("hover boots") And item("longshot") And item("song of time") And item("zelda's lullaby") And canExplode() And (item("lift") Or My.Settings.setShTUmbrella) And
                             (canBurnAdult() Or My.Settings.setShTMQPit) And (item("lens of truth") Or (My.Settings.setShTLensless And My.Settings.setShTPlatform)) Then
                             canDungeon(7) = True
                         Else
@@ -7291,7 +7299,7 @@ Public Class frmTrackerOfTime
 
                     ' BotW Keys in Dungeon
                     If Not asAdult And My.Settings.setSmallKeys = 0 Then
-                        If item("zelda's lullaby") And canExplode() And (item("lens of truth") Or My.Settings.setBotWLensless) And (item("deku stick") Or item("din's fire")) And _
+                        If item("zelda's lullaby") And canExplode() And (item("lens of truth") Or My.Settings.setBotWLensless) And (item("deku stick") Or item("din's fire")) And
                             (item("kokiri sword") Or (item("deku stick") And My.Settings.setBotWDeadHand)) Then
                             canDungeon(8) = True
                         Else
@@ -7307,7 +7315,7 @@ Public Class frmTrackerOfTime
 
                     ' BotW MQ Keys in Dungeon
                     If Not asAdult And My.Settings.setSmallKeys = 0 Then
-                        If canExplode() And (item("lens of truth") Or My.Settings.setBotWLensless) And (item("kokiri sword") Or (item("deku stick") And My.Settings.setBotWDeadHand)) And _
+                        If canExplode() And (item("lens of truth") Or My.Settings.setBotWLensless) And (item("kokiri sword") Or (item("deku stick") And My.Settings.setBotWDeadHand)) And
                             (item("zelda's lullaby") Or My.Settings.setBotWMQPits) Then
                             canDungeon(8) = True
                         Else
@@ -7362,7 +7370,7 @@ Public Class frmTrackerOfTime
 
                     ' GTG Keys in Dungeon
                     If asAdult And My.Settings.setSmallKeys = 0 Then
-                        If item("bow") And item("hammer") And item("hookshot") And item("iron boots") And item("song of time") And item("lift", 2) And canExplode() And canFewerZora() And _
+                        If item("bow") And item("hammer") And item("hookshot") And item("iron boots") And item("song of time") And item("lift", 2) And canExplode() And canFewerZora() And
                             (item("lens of truth") Or My.Settings.setGTGLensless) Then
                             canDungeon(10) = True
                         Else
@@ -7389,7 +7397,7 @@ Public Class frmTrackerOfTime
 
                     ' GTG MQ Keys in Dungeon
                     If asAdult And My.Settings.setSmallKeys = 0 Then
-                        If item("bottle") And item("bow") And item("hammer") And item("hover boots") And item("iron boots") And item("longshot") And item("song of time") And _
+                        If item("bottle") And item("bow") And item("hammer") And item("hover boots") And item("iron boots") And item("longshot") And item("song of time") And
                             item("lift", 2) And canBurnAdult() And canFewerZora() And (item("lens of truth") Or My.Settings.setGTGLensless) Then
                             canDungeon(10) = True
                         Else
@@ -15438,7 +15446,7 @@ Public Class frmTrackerOfTime
         emulator = "soh"
 
         isSoH = True
-        sohSetup()
+        soh.sohSetup()
     End Sub
     Private Sub attachToBizHawk()
         emulator = String.Empty
@@ -16729,8 +16737,8 @@ Public Class frmTrackerOfTime
         Dim message As String = String.Empty
         Select Case text
             Case lcxLogic.Text
-                message = "Attempts to bold any checks you can currently reach, and any area with checks. Minor glitches or tricks may get you more checks than detected." & vbCrLf & vbCrLf & _
-                            "Note: Enabling logic will slow down the scanning.  It may take 2-3 scans to fully update, and may act up when changing areas due to location shifting" & _
+                message = "Attempts to bold any checks you can currently reach, and any area with checks. Minor glitches or tricks may get you more checks than detected." & vbCrLf & vbCrLf &
+                            "Note: Enabling logic will slow down the scanning.  It may take 2-3 scans to fully update, and may act up when changing areas due to location shifting" &
                             "mid-scan.  It is also a lot of work that may not be perfect.  A few logic tricks are able to be set if you know how to do them to help display more."
             Case lblGoldSkulltulas.Text
                 message = "Adds Gold Skulltulas to the checks for each area. Can be set to stop tracking at 50 Tokens."
@@ -16857,7 +16865,7 @@ Public Class frmTrackerOfTime
             Case lcxShowMap.Text
                 message = "Uses a visual map rather than text. You do not get to see the number of checks for each area, but it looks prettier for streaming."
             Case lcxExpand.Text
-                message = "The application is trimmed down for 1920x1080 displays. This will expand the application to see the bottom part of the overwold map, and the output box will show all checks with no cut-off." & vbCrLf & vbCrLf & _
+                message = "The application is trimmed down for 1920x1080 displays. This will expand the application to see the bottom part of the overwold map, and the output box will show all checks with no cut-off." & vbCrLf & vbCrLf &
                     "Note: Steps have been taken to reduce any cut-off of checks you can reach. It only happens in rare occasions, will be fixed once you collect a few checks from the area, and if they are reachable, they should show in place of ones you cannot reach."
             Case lcxShortForm.Text
                 message = "Shorten the application height and adds scrollbars to allow it to fit into 1366x768 resolutions."
@@ -17676,7 +17684,7 @@ Public Class frmTrackerOfTime
                     ' LLR
                     aWarps(i) = "LLR"
                     addReach(9, i)
-                Case "033", "063", "067", "07E", "0B1", "16D", "1CD", "1D1", "1D5", "25A", "25E", "26E", "276", "2A2", "388", _
+                Case "033", "063", "067", "07E", "0B1", "16D", "1CD", "1D1", "1D5", "25A", "25E", "26E", "276", "2A2", "388",
                         "3B8", "3BC", "3C0", "43B", "507", "528", "52C", "530"
                     ' MK
                     aWarps(i) = "MK"
@@ -17689,7 +17697,7 @@ Public Class frmTrackerOfTime
                     ' HC
                     aWarps(i) = "HC"
                     addReach(13, i)
-                Case "03B", "072", "0B7", "0DB", "195", "201", "2FD", "345", "349", "34D", "351", "384", "39C", "3EC", "44B", _
+                Case "03B", "072", "0B7", "0DB", "195", "201", "2FD", "345", "349", "34D", "351", "384", "39C", "3EC", "44B",
                         "453", "463", "4EE", "4FF", "550", "5C8", "5DC"
                     ' KV Main
                     aWarps(i) = "KV"
@@ -18534,7 +18542,7 @@ Public Class frmTrackerOfTime
         Next
     End Sub
 
-     Private Function getGanonMap() As Byte
+    Private Function getGanonMap() As Byte
         getGanonMap = 0
 
         ' 0: Main Region Upper
