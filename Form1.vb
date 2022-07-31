@@ -924,12 +924,14 @@ Public Class frmTrackerOfTime
 
         For i = 0 To 2
             ' Scans at &H11A678, &H11A67C, and &H11A680 
-            tempItems = Hex(goRead(&H11A678 + (i * 4)))
+            tempItems = Hex(goRead(If(isSoH, soh.SAV(&HAC), &H11A678) + (i * 4)))
 
             ' Make sure all leading 0's are put back
             While tempItems.Length < 8
                 tempItems = "0" & tempItems
             End While
+
+            endianFlip(tempItems)
 
             ' Add info into main string
             stringItems = stringItems & tempItems
@@ -983,7 +985,7 @@ Public Class frmTrackerOfTime
     End Sub
     Private Sub getGoldSkulltulas()
         ' Get gold skulltula count
-        Dim bGS As Byte = CByte(goRead(&H11A6A0 + 2, 1))
+        Dim bGS As Byte = CByte(goRead(If(isSoH, soh.SAV(&HD4), &H11A6A0 + 2), 1))
 
         ' Checks to see if the number of gold skulltula's have changed, if not then do not bother to do all that
         If bGS = goldSkulltulas Then Exit Sub
@@ -1081,46 +1083,10 @@ Public Class frmTrackerOfTime
             End Select
         End With
     End Sub
-    Private Sub getItemAmounts()
-        ' Get the amount of each item
-        Dim items1 As String = Hex(goRead(&H11A65C))
-        Dim items2 As String = Hex(goRead(&H11A660))
-        Dim items3 As String = Hex(goRead(&H11A664))
-        Dim items4 As String = Hex(goRead(&H11A668))
 
-        fixHex(items1)
-        fixHex(items2)
-        fixHex(items3)
-        fixHex(items4)
-
-        Dim itemsAll As String = items1 & items2 & items3 & Mid(items4, 1, 6)
-        Dim itemAmount As Byte = 0
-
-        For i = 0 To 14
-            itemAmount = CByte("&H" & Mid(itemsAll, (i * 2) + 1, 2))
-            If aGetQuantity(i) = True Then
-                With aoInventory(i)
-                    ' If single digits
-                    Dim xPos As Byte = 34
-                    ' If double digits
-                    If itemAmount > 9 Then xPos = 19
-                    ' If triple digits
-                    If itemAmount > 99 Then xPos = 3
-                    ' Font for items numbers
-                    Dim fontItem = New Font("Lucida Console", 24, FontStyle.Bold, GraphicsUnit.Pixel)
-
-                    ' Draw the value over the lower right of the item's picturebox, first in black to give it some definition, then in white
-                    Graphics.FromImage(.Image).DrawString(itemAmount.ToString, fontItem, New SolidBrush(Color.Black), xPos - 6, 28)
-                    Graphics.FromImage(.Image).DrawString(itemAmount.ToString, fontItem, New SolidBrush(Color.White), xPos - 5, 29)
-                End With
-            End If
-        Next
-        ' Since the last check is Magic Beans, store that value to our beans
-        magicBeans = itemAmount
-    End Sub
     Private Sub getMagic()
         ' Get magic check. This one is a curious one as there are many areas to check, and none perfect. Should someone hack their file to have magic, this should hopefully find it though
-        Dim bMagic As Byte = CByte(goRead(&H11A600 + 1, 1))
+        Dim bMagic As Byte = CByte(goRead(If(isSoH, soh.SAV(&H2C), &H11A600 + 1), 1))
 
         With pbxMagicBar
             ' If not visible, make visible
@@ -1145,12 +1111,14 @@ Public Class frmTrackerOfTime
         pedestalRead = CByte(goRead(&H11B4FC, 1))
     End Sub
     Private Sub getSmallKeys()
+        ' If(isSoH, soh.SAV(&HAC), &H11A678) (start of dugeonkeys array)
+
         ' Variables used to grab values and store the needed parts into an easy to use string
         Dim tempKeys As String = String.Empty
         Dim stringKeys As String = String.Empty
 
         '  Grab keys for just Forest Temple
-        tempKeys = Hex(goRead(&H11A68C, 1))
+        tempKeys = Hex(goRead(If(isSoH, soh.SAV(&HC3), &H11A68C), 1))
 
         ' Make sure all leading 0's are put back
         fixHex(tempKeys, 2)
@@ -1159,28 +1127,31 @@ Public Class frmTrackerOfTime
         stringKeys = tempKeys
 
         ' Grab keys for Fire, Water, Spirit, and Shadow Temple
-        tempKeys = Hex(goRead(&H11A690))
+        tempKeys = Hex(goRead(If(isSoH, soh.SAV(&HC4), &H11A690)))
 
         ' Make sure all leading 0's are put back
         fixHex(tempKeys)
+        If isSoH Then endianFlip(tempKeys)
 
         ' Add all four of the grabbed Temple keys
         stringKeys = stringKeys & tempKeys
 
         ' Grab keys for Bottom of the Well and Gerudo Training Ground
-        tempKeys = Hex(goRead(&H11A694))
+        tempKeys = Hex(goRead(If(isSoH, soh.SAV(&HC8), &H11A694)))
 
         ' Make sure all leading 0's are put back
         fixHex(tempKeys)
+        If isSoH Then endianFlip(tempKeys)
 
         ' Add Bottom of the Well and Gerudo Training Ground keys
         stringKeys = stringKeys & Mid(tempKeys, 1, 2) & Mid(tempKeys, 7, 2)
 
         ' Grab keys for Ganon's Castle
-        tempKeys = Hex(goRead(&H11A698))
+        tempKeys = Hex(goRead(If(isSoH, soh.SAV(&HC9), &H11A698)))
 
         ' Make sure all leading 0's are put back
         fixHex(tempKeys)
+        If isSoH Then endianFlip(tempKeys)
 
         ' Add Ganon's Castle keys
         stringKeys = stringKeys & Mid(tempKeys, 3, 2)
@@ -1226,6 +1197,9 @@ Public Class frmTrackerOfTime
         Next
     End Sub
     Private Sub getTriforce()
+        ' soh doesn't have Triforce Hunt as of 3.0.0
+        If isSoH Then Exit Sub
+
         ' Get Triforce count
         Dim iTriforce As Byte = CByte(goRead(&H11AE94, 1))
 
@@ -4191,7 +4165,7 @@ Public Class frmTrackerOfTime
             stopScanning()
             Exit Sub
         End If
-        Dim locationCode As Integer = goRead(CUR_ROOM_ADDR + 2, 15)
+        Dim locationCode As Integer = CInt(IIf(isSoH, GDATA(&H200, 1), goRead(CUR_ROOM_ADDR + 2, 15)))
         'Me.Text = locationCode.ToString
         Dim doMath As Integer = 0
         If Not keepRunning Then
@@ -5318,6 +5292,9 @@ Public Class frmTrackerOfTime
     End Sub
     Private Sub checkMQs()
         If Not isLoadedGame() Then Exit Sub
+
+        ' soh 3.0.0 has no MQ dungeons
+        If isSoH Then Exit Sub
 
         For i = 0 To aMQ.Length - 1
             aMQ(i) = False
@@ -15446,7 +15423,7 @@ Public Class frmTrackerOfTime
         emulator = "soh"
 
         isSoH = True
-        soh.sohSetup()
+        soh.sohSetup(romAddrStart64)
     End Sub
     Private Sub attachToBizHawk()
         emulator = String.Empty
@@ -16091,8 +16068,10 @@ Public Class frmTrackerOfTime
         Dim temp As String = String.Empty
         Dim cTemp As Integer = 0
 
+        Dim addrItems As Integer = CInt(IIf(isSoH, &HEC85D8, &H11A644))
 
-        For i = &H11A644 To &H11A658 Step 4
+        'For i = &H11A644 To &H11A658 Step 4
+        For i = addrItems To addrItems + 20 Step 4
             temp = Hex(goRead(i))
             fixHex(temp)
             items = items & temp
@@ -16101,6 +16080,10 @@ Public Class frmTrackerOfTime
             quantity = quantity & temp
         Next
 
+        If isSoH Then
+            endianFlip(items)
+            endianFlip(quantity)
+        End If
         ' Storing items to an easy-to-scan string for logic detection
         allItems = String.Empty
 
@@ -16308,8 +16291,43 @@ Public Class frmTrackerOfTime
                 End If
             End With
         Next
-        getItemAmounts()
+
+        Dim iAmount As Byte = 0
+        For i = 0 To 14
+            iAmount = CByte("&H" & Mid(quantity, (i * 2) + 1, 2))
+            If aGetQuantity(i) = True Then
+                With aoInventory(i)
+                    ' If single digits
+                    Dim xPos As Byte = 34
+                    ' If double digits
+                    If iAmount > 9 Then xPos = 19
+                    ' If triple digits
+                    If iAmount > 99 Then xPos = 3
+                    ' Font for items numbers
+                    Dim fontItem = New Font("Lucida Console", 24, FontStyle.Bold, GraphicsUnit.Pixel)
+
+                    ' Draw the value over the lower right of the item's picturebox, first in black to give it some definition, then in white
+                    Graphics.FromImage(.Image).DrawString(iAmount.ToString, fontItem, New SolidBrush(Color.Black), xPos - 6, 28)
+                    Graphics.FromImage(.Image).DrawString(iAmount.ToString, fontItem, New SolidBrush(Color.White), xPos - 5, 29)
+                End With
+            End If
+        Next
+        ' Since the last check is Magic Beans, store that value to our beans
+        magicBeans = iAmount
     End Sub
+
+    Private Sub endianFlip(ByRef input As String)
+        Dim sDWORD As New List(Of String)
+        For i = 1 To input.Length Step 8
+            sDWORD.Add(Mid(input, i, 8))
+        Next
+        input = String.Empty
+        Dim sCurrent As String = String.Empty
+        For i = 0 To sDWORD.Count - 1
+            input = input & Mid(sDWORD(i), 7, 2) & Mid(sDWORD(i), 5, 2) & Mid(sDWORD(i), 3, 2) & Mid(sDWORD(i), 1, 2)
+        Next
+    End Sub
+
     Private Sub updateDungeonItems()
         If isLoadedGame() = False Then Exit Sub
         getSmallKeys()
@@ -16987,7 +17005,8 @@ Public Class frmTrackerOfTime
             canDungeon(i) = False
         Next
     End Sub
-    Private Sub updateLTB(ByVal ltbName As String)
+
+    Public Sub updateLTB(ByVal ltbName As String)
         Select Case ltbName
             Case ltbShopsanity.Name
                 Select Case My.Settings.setShop
@@ -17046,7 +17065,7 @@ Public Class frmTrackerOfTime
     End Sub
 
 
-    Private Sub updateSettingsPanel()
+    Public Sub updateSettingsPanel()
         'pnlSettings.Invalidate()
         ' LCX are the Label comboboxes I use for custom checkbox drawing. This updates how to draw them
 
@@ -17561,22 +17580,17 @@ Public Class frmTrackerOfTime
     End Function
     Private Sub getPlayerName()
         ' Grab the first 4 characters
-        Dim sPlayerName1 As String = Hex(goRead(&H11A5F4))
+        Dim sPlayerName1 As String = Hex(goRead(If(isSoH, soh.SAV(&H1E), &H11A5F4)))
         ' Grab the last 4 characters
-        Dim sPlayerName2 As String = Hex(goRead(&H11A5F8))
+        Dim sPlayerName2 As String = Hex(goRead(If(isSoH, soh.SAV(&H22), &H11A5F8)))
 
-        ' Make sure to fill the 0's
-        While sPlayerName1.Length < 8
-            sPlayerName1 = "0" & sPlayerName1
-        End While
-
-        ' Make sure to fill the 0's
-        While sPlayerName2.Length < 8
-            sPlayerName2 = "0" & sPlayerName2
-        End While
+        fixHex(sPlayerName1) ' pad to 8 chars
+        fixHex(sPlayerName2)
 
         ' Combine into one
-        sPlayerName1 = sPlayerName1 & sPlayerName2
+        sPlayerName1 &= sPlayerName2
+
+        If isSoH Then endianFlip(sPlayerName1)
 
         ' Check with the stored player name, if it is the same, exit sub and do not redraw it
         If playerName = sPlayerName1 Then Exit Sub
@@ -17604,6 +17618,28 @@ Public Class frmTrackerOfTime
             Case 0 To 9
                 ' 0 to 9, 48 to 57, so +48, but instead just turn it a string
                 decodeLetter = valLetter.ToString
+            Case 10 To 35
+                ' A-Z for soh
+                If isSoH Then
+                    decodeLetter = Chr(valLetter + 55)
+                End If
+            Case 36 To 61
+                ' a-z for soh
+                If isSoH Then
+                    decodeLetter = Chr(valLetter + 61)
+                End If
+            Case 62
+                If isSoH Then
+                    decodeLetter = " "
+                End If
+            Case 63
+                If isSoH Then
+                    decodeLetter = "-"
+                End If
+            Case 64
+                If isSoH Then
+                    decodeLetter = "."
+                End If
             Case 171 To 196
                 ' A-Z, normally 65 to 90, so -106
                 decodeLetter = Chr(valLetter - 106)
@@ -17619,6 +17655,8 @@ Public Class frmTrackerOfTime
         End Select
     End Function
     Private Sub getWarps()
+        If isSoH Then Exit Sub ' soh 3.0.0 has no song warp randomization
+
         Dim arrOffsets() As Integer = {&H903D0, &H903E0, &H3AB22E, &H3AB22C, &H3AB232, &H3AB230, &H3AB236, &H3AB234}
         Dim sRead As String = String.Empty
         ' If the Minuet and Bolero warps are 0, then player is in a load screen or pause menu. Abort.
@@ -18059,6 +18097,8 @@ Public Class frmTrackerOfTime
         rainbowBridge(1) = CByte(goRead(aAddresses(5), 1))
     End Sub
     Private Sub getER()
+        If isSoH Then Exit Sub ' soh 3.0.0 has no entrance rando
+
         iER = 0
         ' Overworld ER check
         If Not aAddresses(18) = 0 Then
