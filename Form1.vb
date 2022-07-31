@@ -46,7 +46,7 @@ Public Class frmTrackerOfTime
 
     ' Arrays for location scanning and their settings
     Public arrLocation(CHECK_COUNT) As Integer
-    Private arrChests(CHECK_COUNT) As Integer
+    Private arrChests(CHECK_COUNT) As Long
     Private arrHigh(CHECK_COUNT) As Byte
     Private arrLow(CHECK_COUNT) As Byte
 
@@ -98,7 +98,7 @@ Public Class frmTrackerOfTime
 
     ' Variables for detecting room info
     Private Const CUR_ROOM_ADDR As Integer = &H1C8544
-    Private lastRoomScan As Integer = 0
+    Private lastRoomScan As Long = 0
 
     ' Cheat menu vars
     Private iCheat As Byte = 0
@@ -4165,7 +4165,9 @@ Public Class frmTrackerOfTime
             stopScanning()
             Exit Sub
         End If
+
         Dim locationCode As Integer = CInt(IIf(isSoH, GDATA(&H200, 1), goRead(CUR_ROOM_ADDR + 2, 15)))
+
         'Me.Text = locationCode.ToString
         Dim doMath As Integer = 0
         If Not keepRunning Then
@@ -4173,13 +4175,13 @@ Public Class frmTrackerOfTime
             Exit Sub
         End If
 
-        Dim chestCheck As Integer
+        Dim chestCheck As Long = 0
         Dim foundChests As Double = 0
         Dim compareTo As Double = 0
         Dim strI As String = String.Empty
         Dim strII As String = String.Empty
         Dim doCheck As Boolean = False
-        Dim checkAgain = False
+        Dim checkAgain As Boolean = False
 
         For i = 0 To arrLocation.Length - 1
             If i Mod 5 = 0 Then Application.DoEvents()
@@ -4188,23 +4190,31 @@ Public Class frmTrackerOfTime
                 Case 0 To 59, Is >= 100
                     ' These are the area checks, either chest, standing items, area events, as they will need to be checked as they happen
 
-                    doMath = (locationCode * 28) + 212 + &H11A5D0
-                    tempVar = &H1CA1D8
+                    doMath = (locationCode * 28) + &H11A6A4
+                    If isSoH Then doMath = doMath + &HDADF94
+                    tempVar = CInt(IIf(isSoH, &H2388, &H1CA1D8))
 
+                    Dim doFlip As Boolean = False
                     Select Case i
                         Case 0 To 2, 103 To 113, 115 To 117
                             ' Scene Checks
                             inc(doMath, 4)
-                            tempVar = &H1CA1C8
+                            ' -0x10 from default
+                            dec(tempVar, 16)
                         Case 3 To 30, 100 To 102, 114
                             ' Standing Checks
                             inc(doMath, 12)
-                            tempVar = &H1CA1E4
+                            inc(tempVar, 12)
                     End Select
 
                     If doMath = arrLocation(i) Then
                         checkAgain = False
-                        chestCheck = goRead(tempVar, arrHigh(i))
+                        If isSoH Then
+                            chestCheck = CInt(GDATA(tempVar))
+                        Else
+                            chestCheck = goRead(tempVar, arrHigh(i))
+                        End If
+
                         If Not keepRunning Then
                             stopScanning()
                             Exit Sub
@@ -4231,11 +4241,29 @@ Public Class frmTrackerOfTime
             End Select
 
             If checkAgain Then
-                chestCheck = goRead(arrLocation(i), arrHigh(i))
                 If Not keepRunning Then
                     stopScanning()
                     Exit Sub
                 End If
+
+                'If isSoH Then
+                '   chestCheck = GDATA(arrLocation(i))
+                'Else
+                chestCheck = goRead(arrLocation(i), arrHigh(i))
+                'End If
+
+                If isSoH Then
+                    Select Case i
+                        Case 61, 62, 64, 66, 67
+                            ' If i > 63 And i < 68 Then
+                            Dim tempHex As String = Hex(chestCheck)
+                            fixHex(tempHex)
+                            tempHex = Mid(tempHex, 5) & Mid(tempHex, 1, 4)
+                            chestCheck = CUInt("&H" & tempHex)
+                            'End If
+                    End Select
+                End If
+
                 'If Not chestCheck = arrChests(i) Then
                 arrChests(i) = chestCheck
                 parseChestData(i)
@@ -4485,17 +4513,19 @@ Public Class frmTrackerOfTime
         Dim gotHit As Boolean = False
         Dim startI As Byte = 31
 
-        Select Case arrHigh(loc)
-            Case 0 To 7
-                startI = 7
-                compareTo = 128
-            Case 8 To 15
-                startI = 15
-                compareTo = 32768
-            Case Else
-                startI = 31
-                compareTo = 2147483648
-        End Select
+        If Not isSoH Then
+            Select Case arrHigh(loc)
+                Case 0 To 7
+                    startI = 7
+                    compareTo = 128
+                Case 8 To 15
+                    startI = 15
+                    compareTo = 32768
+                Case Else
+                    startI = 31
+                    compareTo = 2147483648
+            End Select
+        End If
 
         If IS_64BIT Then
             'startI = 31
@@ -16070,7 +16100,6 @@ Public Class frmTrackerOfTime
 
         Dim addrItems As Integer = CInt(IIf(isSoH, &HEC85D8, &H11A644))
 
-        'For i = &H11A644 To &H11A658 Step 4
         For i = addrItems To addrItems + 20 Step 4
             temp = Hex(goRead(i))
             fixHex(temp)

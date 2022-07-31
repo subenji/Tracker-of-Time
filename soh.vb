@@ -42,8 +42,44 @@ Module soh
             Next
         End If
 
-        frmTrackerOfTime.arrLocation(74) = SAV(&H9E)
-        frmTrackerOfTime.arrLocation(76) = SAV(&HA4)
-        frmTrackerOfTime.arrLocation(77) = SAV(&HA8)
+        'arrLocation(60) = &H11A640          ' *Biggoron Check, emu
+        'frmTrackerOfTime.arrLocation(60) = SAV()  - HALP IDK AAAA, seems to be in cur equipped equipment ???  ' *Biggoron Check
+        frmTrackerOfTime.arrLocation(61) = SAV(&HEB0)          ' *Big Fish
+        frmTrackerOfTime.arrLocation(62) = SAV(&HEC4)          ' *Events 1: Egg from Malon, Obtained Epona, Won Cow
+        frmTrackerOfTime.arrLocation(63) = SAV(&HECA)          ' *Events 2: Zora Diving Game, (Darunia’s Joy NOT WORKING)
+        frmTrackerOfTime.arrLocation(64) = SAV(&HECC)          ' *Events 3: Zelda’s Letter, Song from Impa, Sun Song??, opened Temple of Time, Rainbow Bridge
+        ' NONFUNC/UNTESTED BELOW HERE
+        'arrLocation(65) = &H11B4B4          ' *Events 5: Scarecrow as Adult
+        frmTrackerOfTime.arrLocation(65) = SAV(&HED6)          ' *Events 5: Scarecrow as Adult
+        'arrLocation(66) = &H11B4B8          ' *Events 6: Song at Colossus, Trials
+        frmTrackerOfTime.arrLocation(66) = SAV(&HEDA)          ' *Events 6: Song at Colossus, Trials
+        'arrLocation(67) = &H11B4BC          ' *Events 7: Saria Gift, Skulltula trades, Barrier Lowered
+        frmTrackerOfTime.arrLocation(67) = SAV(&HEDE)          ' *Events 7: Saria Gift, Skulltula trades, Barrier Lowered
+        'arrLocation(68) = &H11B4C0          ' *Item Collect #1
+        frmTrackerOfTime.arrLocation(68) = SAV(&HEE2)          ' *Item Collect #1
+        'arrLocation(69) = &H11B4C4          ' *Item Collection #2
+        frmTrackerOfTime.arrLocation(69) = SAV(&HEE6)          ' *Item Collection #2
+        'arrLocation(70) = &H11B4E8          ' *Item: Rolling Goron as Young + Adult Link
+        frmTrackerOfTime.arrLocation(70) = SAV(&HF0A)          ' *Item: Rolling Goron as Young + Adult Link
+        'arrLocation(71) = &H11B4EC          ' *Thaw Zora King
+        frmTrackerOfTime.arrLocation(71) = SAV(&HF0E)          ' *Thaw Zora King
+        'arrLocation(72) = &H11B4F8          ' *Items: 1st and 2nd Scrubs, Lost Dog
+        frmTrackerOfTime.arrLocation(72) = SAV(&HF1A)          ' *Items: 1st and 2nd Scrubs, Lost Dog
+        'arrLocation(73) = &H11B894          ' *Scarecrow Song
+        frmTrackerOfTime.arrLocation(73) = SAV(&HF28)          ' *Scarecrow Song
+        ' END OF NONFUNC/UNTESTED
+
+        'frmTrackerOfTime.arrLocation(62) = SAV(&HEC4)          ' *Events 1: Egg from Malon, Obtained Epona, Won Cow
+        'frmTrackerOfTime.arrLocation(63) = SAV(&HEC8)          ' *Events 2: Zora Diving Game, Darunia’s Joy
+        'frmTrackerOfTime.arrLocation(64) = SAV(&HECC)          ' *Events 3: Zelda’s Letter, Song from Impa, Sun Song??, opened Temple of Time, Rainbow Bridge
+        'frmTrackerOfTime.arrLocation(65) = SAV(&HED0)          ' *Events 5: Scarecrow as Adult
+        'frmTrackerOfTime.arrLocation(66) = SAV(&HED4)          ' *Events 6: Song at Colossus, Trials
+        'frmTrackerOfTime.arrLocation(67) = SAV(&HED8)          ' *Events 7: Saria Gift, Skulltula trades, Barrier Lowered
+
+
+        frmTrackerOfTime.arrLocation(74) = SAV(&H9E)        ' *Equipment
+        frmTrackerOfTime.arrLocation(75) = SAV(&H36)        ' *Check for Biggoron's Sword
+        frmTrackerOfTime.arrLocation(76) = SAV(&HA4)        ' *Upgrades
+        frmTrackerOfTime.arrLocation(77) = SAV(&HA8)        ' *Quest Items and Songs
     End Sub
 End Module
