@@ -53,8 +53,10 @@ Module soh
         frmTrackerOfTime.arrLocation(66) = SAV(&HED8)          ' *Events 6: Song at Colossus, Trials
         'frmTrackerOfTime.arrLocation(67) = SAV(&HED8)          ' *Events 7: Saria Gift, Skulltula trades, Barrier Lowered
         frmTrackerOfTime.arrLocation(67) = SAV(&HEDC)          ' *Events 7: Saria Gift, Skulltula trades, Barrier Lowered
-        frmTrackerOfTime.arrLocation(68) = SAV(&HEE2)          ' *Item Collect #1
-        frmTrackerOfTime.arrLocation(69) = SAV(&HEE6)          ' *Item Collection #2
+        'frmTrackerOfTime.arrLocation(68) = SAV(&HEE2)          ' *Item Collect #1
+        frmTrackerOfTime.arrLocation(68) = SAV(&HEE0)          ' *Item Collect #1
+        'frmTrackerOfTime.arrLocation(69) = SAV(&HEE6)          ' *Item Collection #2
+        frmTrackerOfTime.arrLocation(69) = SAV(&HEE4)          ' *Item Collection #2
         frmTrackerOfTime.arrLocation(70) = SAV(&HF0A)          ' *Item: Rolling Goron as Young + Adult Link
         frmTrackerOfTime.arrLocation(71) = SAV(&HF0E)          ' *Thaw Zora King
         frmTrackerOfTime.arrLocation(72) = SAV(&HF1A)          ' *Items: 1st and 2nd Scrubs, Lost Dog

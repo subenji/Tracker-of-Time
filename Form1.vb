@@ -4259,7 +4259,7 @@ Public Class frmTrackerOfTime
 
                 If isSoH Then
                     Select Case i
-                        Case 61 To 67
+                        Case 61 To 69
                             Dim tempHex As String = Hex(chestCheck)
                             fixHex(tempHex)
                             tempHex = Mid(tempHex, 5) & Mid(tempHex, 1, 4)
