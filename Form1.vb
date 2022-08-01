@@ -9,7 +9,7 @@ Public Class frmTrackerOfTime
 
     ' Constant variables used throughout the app. The most important here is the 'IS_64BIT' as this needs to be set if compiling in x64
     Private Const PROCESS_ALL_ACCESS As Integer = &H1F0FFF
-    Private Const CHECK_COUNT As Byte = 117
+    Private Const CHECK_COUNT As Byte = 121
     Private Const IS_64BIT As Boolean = True
     Private Const VER As String = "4.0.7"
     Private p As Process = Nothing
@@ -888,6 +888,10 @@ Public Class frmTrackerOfTime
         arrLocation(115) = &H11B15C + 4     ' Goron City (Events)
         arrLocation(116) = &H11AFD4 + 4     ' Zora's River (Events)
         arrLocation(117) = &H11A784 + 4     ' BotW (Events)
+        arrLocation(118) = &H11B178         ' Lon Lon Ranch
+        arrLocation(119) = &H11B00C         ' Sacred Forest Meadow
+        arrLocation(120) = &H11ADDC         ' Shooting Gallery
+        arrLocation(121) = &H11AD50         ' GF DC/HC/ZF
 
         For i As Integer = 0 To arrLocation.Length - 1
             arrChests(i) = 0
@@ -1480,6 +1484,7 @@ Public Class frmTrackerOfTime
                     pbxMap.Image = My.Resources.mapDC
                 Case 93, 12
                     pbxMap.Image = My.Resources.mapGF
+                    locationCode = 93
                 Case 94
                     pbxMap.Image = My.Resources.mapHW2
                 Case 95
@@ -4192,7 +4197,7 @@ Public Class frmTrackerOfTime
             If i Mod 5 = 0 Then Application.DoEvents()
             checkAgain = True
             Select Case i
-                Case 0 To 59, 100 To 117
+                Case 0 To 59, Is >= 100
                     ' These are the area checks, either chest, standing items, area events, as they will need to be checked as they happen
 
                     doMath = (locationCode * 28) + &H11A6A4
@@ -4259,7 +4264,7 @@ Public Class frmTrackerOfTime
 
                 If isSoH Then
                     Select Case i
-                        Case 61 To 69
+                        Case 61 To 70
                             Dim tempHex As String = Hex(chestCheck)
                             fixHex(tempHex)
                             tempHex = Mid(tempHex, 5) & Mid(tempHex, 1, 4)
@@ -15483,9 +15488,31 @@ Public Class frmTrackerOfTime
         emulator = "soh"
 
         isSoH = True
-        For Each key In aKeys.Where(Function(k As keyCheck) k.loc.Equals("6306"))
-            key.loc = "5930"
+        For Each key In aKeys
+            Select Case key.loc
+                Case "2208"     ' Redirect Dampe's Gravedigging
+                    key.loc = "2231"
+                Case "5200"     ' Redirect Shoot the Sun
+                    key.loc = "5231"
+                Case "6306"     ' Redirect Darunia's Joy
+                    key.loc = "5630"
+                    'Case "6828"     ' Redirect Anju's Chickens
+                 '   key.loc = "7728"
+                Case "6407"     ' Redirect Song from Saria
+                    key.loc = "11931"
+                Case "6408"     ' Redirect Song from Malon
+                    key.loc = "11831"
+                Case "6410"     ' Redirect Sun's Song (you need to check the message twice!!!)
+                    key.loc = "4931"
+                Case "6809"     ' Redirect GF Castle (Young)
+                    key.loc = "12102"
+                Case "6810"     ' Redirect GF Desert
+                    key.loc = "12103"
+                Case "6830"     ' Shooting Gallery Adult (Child worked, todo: test child again)
+                    key.loc = "12031"
+            End Select
         Next
+        getHighLows()
         soh.sohSetup(romAddrStart64)
     End Sub
     Private Sub attachToBizHawk()
@@ -18722,14 +18749,26 @@ Public Class frmTrackerOfTime
 
     Private Function getPosition() As Double()
         ' Grab values for XYZ
-        Dim valX As Int32 = goRead(&H1DAA54)
-        Dim valY As Int32 = goRead(&H1DAA58)
-        Dim valZ As Int32 = goRead(&H1DAA5C)
+        Dim valX As String = String.Empty
+        Dim valY As String = String.Empty
+        Dim valZ As String = String.Empty
+
+        If isSoH Then
+            valX = Convert.ToString(GDATA(&H17264), 2)
+            valY = Convert.ToString(GDATA(&H17268), 2)
+            valZ = Convert.ToString(GDATA(&H1726C), 2)
+        Else
+            valX = Convert.ToString(goRead(&H1DAA54), 2)
+            valY = Convert.ToString(goRead(&H1DAA54), 2)
+            valZ = Convert.ToString(goRead(&H1DAA54), 2)
+        End If
+
+        fixBinaryLength(valX, valY, valZ)
 
         ' Convert values into IEEE-754 floating points
-        Dim coordX As Double = int2float(valX)
-        Dim coordY As Double = int2float(valY)
-        Dim coordZ As Double = int2float(valZ)
+        Dim coordX As Double = bin2float(valX)
+        Dim coordY As Double = bin2float(valY)
+        Dim coordZ As Double = bin2float(valZ)
 
         ' Return the whole array
         Return New Double() {coordX, coordY, coordZ}
@@ -18750,7 +18789,14 @@ Public Class frmTrackerOfTime
         Dim coordX As Double = ((linkPOS(0) + 4550) / 8200) * 400 + 53
         Dim coordZ As Double = ((linkPOS(2) + 3750) / 8200) * 400 + 17
 
-        Dim linkRot As Integer = goRead(&H1DAA74, 15)
+
+        Dim linkRot As Integer = 0
+
+        If isSoH Then
+            linkRot = CInt(GDATA(&H1730A, 2))
+        Else
+            linkRot = goRead(&H1DAA74, 15)
+        End If
         Dim headA As Double = (((linkRot / 65535 * 360) - 90) * -1) * Math.PI / 180
         Dim tailA As Double = (((linkRot / 65535 * 360) + 90) * -1) * Math.PI / 180
 
