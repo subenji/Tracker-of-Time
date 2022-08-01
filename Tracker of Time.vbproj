@@ -433,6 +433,7 @@
     <None Include="additional\backgroundInventory.bmp" />
     <None Include="additional\backgroundDungeonItems.bmp" />
     <Content Include=".gitattributes" />
+    <Content Include=".gitignore" />
     <Content Include="additional\bottleBigPoe.bmp" />
     <Content Include="additional\bottleBlueFire.bmp" />
     <Content Include="additional\bottleBluePotion.bmp" />
