@@ -11,7 +11,7 @@ Public Class frmTrackerOfTime
     Private Const PROCESS_ALL_ACCESS As Integer = &H1F0FFF
     Private Const CHECK_COUNT As Byte = 117
     Private Const IS_64BIT As Boolean = True
-    Private Const VER As String = "4.0.6"
+    Private Const VER As String = "4.0.7"
     Private p As Process = Nothing
 
     ' Variables used to determine what emulator is connected, its state, and its starting memory address
@@ -901,8 +901,10 @@ Public Class frmTrackerOfTime
         canAdult = False
         canYoung = False
 
+        Dim addrAge As Integer = If(isSoH, SAV(&H4), &H11A5D4)
+
         ' If 0 or 1 , set the age as accessable
-        Select Case CByte(goRead(&H11A5D4, 1))
+        Select Case CByte(goRead(addrAge, 1))
             Case 0
                 canAdult = True
                 isAdult = True
@@ -1276,8 +1278,6 @@ Public Class frmTrackerOfTime
 
     Private Sub scanER()
         ' ER scanning
-        'If iER = 0 Then Exit Sub
-
         Dim isOverworld As Boolean = False
         Dim isDungeon As Boolean = False
         Dim doTrials As Boolean = False
@@ -1289,7 +1289,7 @@ Public Class frmTrackerOfTime
         ' For building the arrays for scenes with Dungeon entrances
         Dim ent As Byte = 0
 
-        Dim locationCode As Integer = goRead(CUR_ROOM_ADDR + 2, 15)
+        Dim locationCode As Integer = CInt(IIf(isSoH, GDATA(&H200, 1), goRead(CUR_ROOM_ADDR + 2, 15)))
         Dim locationArray As Byte = 255
         Dim readExits(6) As Integer     ' Exits read for current map
         Dim aAlign(6) As Byte           ' Sets text alignment: 0 = Left | 1 = Centre | 2 = Right
@@ -1298,10 +1298,13 @@ Public Class frmTrackerOfTime
             aAlign(i) = 0
             readExits(i) = 0
         Next
+
         getAge()
 
+        'Dim addrRoom As Integer = If(isSoH, &HD16D9C, &H1D8BEE)
+        Dim addrRoom As Integer = If(isSoH, SAV(-&H1B17C4), &H1D8BEE)
         If locationCode <= 9 Then
-            iRoom = CByte(goRead(&H1D8BEE, 1))
+            iRoom = CByte(goRead(addrRoom, 1))
         End If
 
         ' First load up the map, I keep this separated so that it does not matter for ER settings
@@ -4184,10 +4187,12 @@ Public Class frmTrackerOfTime
         Dim checkAgain As Boolean = False
 
         For i = 0 To arrLocation.Length - 1
+            ' 118 is only for SoH
+            If i = 118 And Not isSoH Then Exit For
             If i Mod 5 = 0 Then Application.DoEvents()
             checkAgain = True
             Select Case i
-                Case 0 To 59, Is >= 100
+                Case 0 To 59, 100 To 117
                     ' These are the area checks, either chest, standing items, area events, as they will need to be checked as they happen
 
                     doMath = (locationCode * 28) + &H11A6A4
@@ -4210,7 +4215,7 @@ Public Class frmTrackerOfTime
                     If doMath = arrLocation(i) Then
                         checkAgain = False
                         If isSoH Then
-                            chestCheck = CInt(GDATA(tempVar))
+                            chestCheck = GDATA(tempVar)
                         Else
                             chestCheck = goRead(tempVar, arrHigh(i))
                         End If
@@ -4246,28 +4251,26 @@ Public Class frmTrackerOfTime
                     Exit Sub
                 End If
 
-                'If isSoH Then
-                '   chestCheck = GDATA(arrLocation(i))
-                'Else
-                chestCheck = goRead(arrLocation(i), arrHigh(i))
-                'End If
+                If isSoH Then
+                    chestCheck = goRead(arrLocation(i))
+                Else
+                    chestCheck = goRead(arrLocation(i), arrHigh(i))
+                End If
 
                 If isSoH Then
                     Select Case i
-                        Case 61, 62, 64, 66, 67
-                            ' If i > 63 And i < 68 Then
+                        Case 61 To 67
                             Dim tempHex As String = Hex(chestCheck)
                             fixHex(tempHex)
                             tempHex = Mid(tempHex, 5) & Mid(tempHex, 1, 4)
                             chestCheck = CUInt("&H" & tempHex)
-                            'End If
                     End Select
                 End If
 
-                'If Not chestCheck = arrChests(i) Then
-                arrChests(i) = chestCheck
-                parseChestData(i)
-                'End If
+                If Not chestCheck = arrChests(i) Then
+                    arrChests(i) = chestCheck
+                    parseChestData(i)
+                End If
             End If
         Next
         scanSingleChecks()
@@ -4401,27 +4404,53 @@ Public Class frmTrackerOfTime
         End If
     End Sub
     Private Sub scanSingleChecks()
+        Dim arrSingles(9) As Integer
+
+        If isSoH Then
+            arrSingles(0) = SAV(&HAD0)  ' &HEC9030
+            arrSingles(1) = SAV(&HAEC)  ' &HEC904C
+            arrSingles(2) = SAV(&HB0C)  ' &HEC906C
+            arrSingles(3) = SAV(&HB78)  ' &HEC90D8
+            arrSingles(4) = SAV(&H9F0)  ' &HEC8F50
+            arrSingles(5) = SAV(&HB08)  ' &HEC9068
+            arrSingles(6) = 0
+            arrSingles(7) = SAV(&HEE4)  ' &HEC9444
+            arrSingles(8) = SAV(&HF08)  ' &HEC9468
+        Else
+            arrSingles(0) = &H11B09C
+            arrSingles(1) = &H11B0B8
+            arrSingles(2) = &H11B128
+            arrSingles(3) = &H11B144
+            arrSingles(4) = &H11AFBC
+            arrSingles(5) = &H11B0D4
+            arrSingles(6) = &H11B150
+            arrSingles(7) = &H11B4B0
+            arrSingles(8) = &H11B4D4
+        End If
+
         ' LW Bean Planted
-        If My.Settings.setSkulltula > 0 And My.Settings.setGSLoc >= 1 Then setLoc("B0", checkBit(&H11B09C, 22))
+        If My.Settings.setSkulltula > 0 And My.Settings.setGSLoc >= 1 Then setLoc("B0", checkBit(arrSingles(0), 22))
         ' DC Bean Planted
-        setLoc("B1", checkBit(&H11B0B8, 24))
+        setLoc("B1", checkBit(arrSingles(1), 24))
         ' DMT Bean Planted
-        setLoc("B2", checkBit(&H11B128, 6))
+        setLoc("B2", checkBit(arrSingles(2), 6))
         ' DMC Bean Planted
-        setLoc("B3", checkBit(&H11B144, 3))
+        setLoc("B3", checkBit(arrSingles(3), 3))
         ' GY Bean Planted
-        setLoc("B4", checkBit(&H11AFBC, 3))
+        setLoc("B4", checkBit(arrSingles(4), 3))
 
         ' GV Opened Gate to Haunted Wasteland
-        setLoc("C00", checkBit(&H11B0D4, 3))
+        setLoc("C00", checkBit(arrSingles(5), 3))
         ' DMC Deku Near Ladder
-        If My.Settings.setScrub Then setLoc("C01", checkBit(&H11B150, 6))
+        If My.Settings.setScrub Then
+            setLoc("C01", checkBit(arrSingles(6), 6))
+        End If
         ' EV: KV Well Drained
-        setLoc("C02", checkBit(&H11B4B0, 23))
+        setLoc("C02", checkBit(arrSingles(7), 23))
         ' EV: LH Restored
-        setLoc("C04", checkBit(&H11B4B0, 25))
+        setLoc("C04", checkBit(arrSingles(7), 25))
         ' Deliver Zelda's Letter | Unlock Mask Shoppe
-        setLoc("C05", checkBit(&H11B4D4, 6))
+        setLoc("C05", checkBit(arrSingles(8), 6))
 
         ' Bombchu's in Logic setting
         Dim updateSetting As Boolean = False
@@ -5469,9 +5498,10 @@ Public Class frmTrackerOfTime
         'debugInfo()
 
         '        MsgBox(Hex(goRead(&HEC85FE)))
-        'MsgBox(checkLoc("7420").ToString)
-
-        dump()
+        'MsgBox(checkLoc("11806").ToString)
+        'Dim test As Integer = goRead(arrLocation(118))
+        'MsgBox(Hex(test))
+        'dump()
 
         If False Then
             Dim outputXX As String = "Visited:"
@@ -15453,6 +15483,9 @@ Public Class frmTrackerOfTime
         emulator = "soh"
 
         isSoH = True
+        For Each key In aKeys.Where(Function(k As keyCheck) k.loc.Equals("6306"))
+            key.loc = "5930"
+        Next
         soh.sohSetup(romAddrStart64)
     End Sub
     Private Sub attachToBizHawk()
@@ -17684,39 +17717,51 @@ Public Class frmTrackerOfTime
         End Select
     End Function
     Private Sub getWarps()
-        If isSoH Then Exit Sub ' soh 3.0.0 has no song warp randomization
-
-        Dim arrOffsets() As Integer = {&H903D0, &H903E0, &H3AB22E, &H3AB22C, &H3AB232, &H3AB230, &H3AB236, &H3AB234}
-        Dim sRead As String = String.Empty
-        ' If the Minuet and Bolero warps are 0, then player is in a load screen or pause menu. Abort.
-        If goRead(arrOffsets(3)) = 0 Then Exit Sub
-
-        For i = 0 To aReachA.Length - 1
-            aReachA(i) = False
-            aReachY(i) = False
-        Next
-
-        For i = 0 To 7
-            sRead = Hex(goRead(arrOffsets(i), 15))
-            If Not sRead = "0" Then
-                fixHex(sRead, 3)
-                aWarps(i) = sRead
-            End If
-        Next
-        Dim iStart As Byte = 0
-        Dim iEnd As Byte = 7
-        If aWarps(0) & aWarps(1) = "5F40BB" Then
-            ' If both spawn warps are vanilla, then skip having to check them and set displaying them to false
+        If isSoH Then   ' SoH will load the default exit codes
+            aWarps(0) = "5F4"
+            aWarps(1) = "0BB"
+            aWarps(2) = "600"
+            aWarps(3) = "4F6"
+            aWarps(4) = "604"
+            aWarps(5) = "1F1"
+            aWarps(6) = "568"
+            aWarps(7) = "5F4"
             bSpawnWarps = False
-        Else
-            bSpawnWarps = True
-        End If
-        If aWarps(2) & aWarps(3) & aWarps(4) & aWarps(5) & aWarps(6) & aWarps(7) = "6004F66041F15685F4" Then
-            ' If all warps are vanilla, then skip having to check them and set displaying them to false
             bSongWarps = False
         Else
-            bSongWarps = True
+            Dim arrOffsets() As Integer = {&H903D0, &H903E0, &H3AB22E, &H3AB22C, &H3AB232, &H3AB230, &H3AB236, &H3AB234}
+            Dim sRead As String = String.Empty
+            ' If the Minuet and Bolero warps are 0, then player is in a load screen or pause menu. Abort.
+            If goRead(arrOffsets(3)) = 0 Then Exit Sub
+
+            For i = 0 To aReachA.Length - 1
+                aReachA(i) = False
+                aReachY(i) = False
+            Next
+
+            For i = 0 To 7
+                sRead = Hex(goRead(arrOffsets(i), 15))
+                If Not sRead = "0" Then
+                    fixHex(sRead, 3)
+                    aWarps(i) = sRead
+                End If
+            Next
+            Dim iStart As Byte = 0
+            Dim iEnd As Byte = 7
+            If aWarps(0) & aWarps(1) = "5F40BB" Then
+                ' If both spawn warps are vanilla, then skip having to check them and set displaying them to false
+                bSpawnWarps = False
+            Else
+                bSpawnWarps = True
+            End If
+            If aWarps(2) & aWarps(3) & aWarps(4) & aWarps(5) & aWarps(6) & aWarps(7) = "" Then
+                ' If all warps are vanilla, then skip having to check them and set displaying them to false
+                bSongWarps = False
+            Else
+                bSongWarps = True
+            End If
         End If
+
         For i As Byte = 0 To 7
             Select Case aWarps(i)
                 Case "09C", "0BB", "0C1", "0C9", "211", "266", "26A", "272", "286", "33C", "433", "437", "443", "447"
@@ -18126,7 +18171,7 @@ Public Class frmTrackerOfTime
         rainbowBridge(1) = CByte(goRead(aAddresses(5), 1))
     End Sub
     Private Sub getER()
-        If isSoH Then Exit Sub ' soh 3.0.0 has no entrance rando
+        'If isSoH Then Exit Sub ' soh 3.0.0 has no entrance rando
 
         iER = 0
         ' Overworld ER check
