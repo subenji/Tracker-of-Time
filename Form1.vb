@@ -9,7 +9,7 @@ Public Class frmTrackerOfTime
 
     ' Constant variables used throughout the app. The most important here is the 'IS_64BIT' as this needs to be set if compiling in x64
     Private Const PROCESS_ALL_ACCESS As Integer = &H1F0FFF
-    Private Const CHECK_COUNT As Byte = 121
+    Private Const CHECK_COUNT As Byte = 124
     Private Const IS_64BIT As Boolean = True
     Private Const VER As String = "4.0.7"
     Private p As Process = Nothing
@@ -28,6 +28,8 @@ Public Class frmTrackerOfTime
     Private randoVer As String = String.Empty
     Private rainbowBridge(1) As Byte
     Private aGetQuantity(14) As Boolean
+    Private aRandoSet() As Byte
+    Private lastFirstEnum As Byte = 255
 
     ' Arrays for tracking checks
     Private keyCount As Integer = 337
@@ -732,6 +734,7 @@ Public Class frmTrackerOfTime
         lastArea = String.Empty
         lastOutput.Clear()
         lastTip = 255
+        lastFirstEnum = 255
         'isTriforceHunt = False
 
         For i = 0 To 7
@@ -770,7 +773,7 @@ Public Class frmTrackerOfTime
             firstRun = False
         End If
 
-        arrLocation(0) = &H11AD18 + 4       ' DMC/DMT/OGC Great Fairy Fountain
+        arrLocation(0) = &H11AD18 + 4       ' DMC/DMT/OGC Great Fairy Fountain (Events)
         arrLocation(1) = &H11AF80 + 4       ' Hyrule Field (Events) Big Poes Captured and Ocarina of Time
         arrLocation(2) = &H11B028 + 4       ' Lake Hylia (Events) Ruto's Letter, Open Water Temple, and Bean Plant
         arrLocation(3) = &H11A714 + 12      ' Fire Temple (Standing)
@@ -892,6 +895,9 @@ Public Class frmTrackerOfTime
         arrLocation(119) = &H11B00C         ' Sacred Forest Meadow
         arrLocation(120) = &H11ADDC         ' Shooting Gallery
         arrLocation(121) = &H11AD50         ' GF DC/HC/ZF
+        arrLocation(122) = &H11AD18         ' DMC/DMT/OGC Great Fairy Fountain
+        arrLocation(123) = &H11ADF8         ' Temple of Time
+        arrLocation(124) = &H11AF80         ' Hyrule Field
 
         For i As Integer = 0 To arrLocation.Length - 1
             arrChests(i) = 0
@@ -5277,6 +5283,7 @@ Public Class frmTrackerOfTime
 
     Private Function checkZeldaz() As Byte
         If isSoH Then Return 2
+
         ' Checks for the 'ZELDAZ' within the memory to make sure you are playing Ocarina of Time, and that it is still reading the correct memory region
         checkZeldaz = 0
         Dim zeldaz1 As Integer = goRead(&H11A5EC)
@@ -5299,7 +5306,14 @@ Public Class frmTrackerOfTime
         If isSoH Then addrLoaded = soh.SAV(&H1320)
         ' Checks the game state (2=game menu, 1=title screen, 0=gameplay), if 0 and a successful ZELDAZ check, then true
         isLoadedGame = False
-        If goRead(addrLoaded, 1) = 0 And checkZeldaz() = 2 Then isLoadedGame = True
+        If goRead(addrLoaded, 1) = 0 And checkZeldaz() = 2 Then
+            isLoadedGame = True
+        Else
+            If isSoH Then
+                lastFirstEnum = 255 ' SOH is loaded but we're on the main menu, so clear the rando settings
+                ResetToolStripMenuItem_Click(Nothing, Nothing)
+            End If
+        End If
     End Function
     Private Sub debugInfo()
         emulator = String.Empty
@@ -5397,6 +5411,7 @@ Public Class frmTrackerOfTime
     End Sub
     Private Sub updateEverything()
         If checkZeldaz() = 2 And isLoadedGame() Then
+            If isSoH Then getSoHRandoSettings()
             getWarps()
             getRainbowBridge()
             changeScrubs()
@@ -5469,13 +5484,16 @@ Public Class frmTrackerOfTime
     End Function
     Private Sub shutupNavi()
         ' With great power, comes little care for what others have to day. Shut up Navi's timed complaints.
+
+        Dim addrNavi As Integer = &H11A60A
         Select Case emulator
             Case String.Empty
                 Exit Sub
             Case "variousX64"
-                WriteMemory(Of Int16)(romAddrStart64 + &H11A608 + 2, 0)
+                If isSoH Then addrNavi = SAV(&H32)
+                WriteMemory(Of Int16)(romAddrStart64 + addrNavi, 0)
             Case Else
-                quickWrite16(&H11A608 + 2, 0, emulator)
+                quickWrite16(addrNavi, 0, emulator)
         End Select
     End Sub
 
@@ -5534,6 +5552,14 @@ Public Class frmTrackerOfTime
                 outputXX = outputXX & vbCrLf & i.ToString & ": " & aReachY(i).ToString
             Next
             Clipboard.SetText(outputXX)
+        End If
+
+        If False Then
+            Dim text As String = String.Empty
+            For i = 0 To arrLocation.Length - 1
+                text = text & "frmTrackerOfTime.arrLocation(" & i.ToString & ") = SAV(&H" & Hex(arrLocation(i) - &HEC8560) & ")" & vbCrLf
+            Next
+            Clipboard.SetText(text)
         End If
     End Sub
     Private Sub changeTheme(Optional theme As Byte = 0)
@@ -7870,9 +7896,16 @@ Public Class frmTrackerOfTime
             Return False
         End If
 
-        Dim conditionLACS As Byte = CByte(goRead(aAddresses(1), 1))
-        Dim countLACS As Byte = CByte(goRead(aAddresses(2), 1))
+        Dim conditionLACS As Byte
+        Dim countLACS As Byte
         Dim countChecks As Byte = 0
+        If isSoH Then   ' only vanilla LACS currently
+            conditionLACS = 0
+            countLACS = 0
+        Else
+            conditionLACS = CByte(goRead(aAddresses(1), 1))
+            countLACS = CByte(goRead(aAddresses(2), 1))
+        End If
         Select Case conditionLACS
             Case 0
                 ' Vanilla: Spirit Medallion and Shadow Medallion
@@ -15490,12 +15523,18 @@ Public Class frmTrackerOfTime
         isSoH = True
         For Each key In aKeys
             Select Case key.loc
+                Case "016"      ' Redirect DMC Great Fairy
+                    key.loc = "12202"
+                Case "024"      ' Redirect DMT Great Fairy
+                    key.loc = "12201"
                 Case "2208"     ' Redirect Dampe's Gravedigging
                     key.loc = "2231"
                 Case "5200"     ' Redirect Shoot the Sun
                     key.loc = "5231"
                 Case "6306"     ' Redirect Darunia's Joy
                     key.loc = "5630"
+                Case "6720"     ' Light Arrows Cutscene Reward
+                    key.loc = "12330"
                     'Case "6828"     ' Redirect Anju's Chickens
                  '   key.loc = "7728"
                 Case "6407"     ' Redirect Song from Saria
@@ -15504,10 +15543,16 @@ Public Class frmTrackerOfTime
                     key.loc = "11831"
                 Case "6410"     ' Redirect Sun's Song (you need to check the message twice!!!)
                     key.loc = "4931"
+                Case "6625"     ' Redirect Song From Ocarina of Time
+                    key.loc = "12431"
+                Case "6808"     ' Redirect GF Zora
+                    key.loc = "12101"
                 Case "6809"     ' Redirect GF Castle (Young)
                     key.loc = "12102"
                 Case "6810"     ' Redirect GF Desert
                     key.loc = "12103"
+                Case "6814"     ' Redirect Deku Theatre Skull Mask
+                    key.loc = "4631"
                 Case "6830"     ' Shooting Gallery Adult (Child worked, todo: test child again)
                     key.loc = "12031"
             End Select
@@ -15515,6 +15560,29 @@ Public Class frmTrackerOfTime
         getHighLows()
         soh.sohSetup(romAddrStart64)
     End Sub
+
+    Private Sub getSoHRandoSettings()
+        Dim offset As Integer = SAV(&H13E8)
+        Dim varEnum As Byte = 0
+        Dim varVal As Byte = 0
+
+        Dim firstEnum As Byte = CByte(goRead(offset, 1))
+        If lastFirstEnum = firstEnum Then Exit Sub
+        lastFirstEnum = firstEnum
+
+        ReDim aRandoSet(50)
+        For i = 0 To aRandoSet.Length - 1
+            aRandoSet(i) = 0
+        Next
+
+        For i = 0 To aRandoSet.Length - 1
+            varEnum = CByte(goRead(offset + (i * 8), 1))
+            If varEnum = 0 Then Exit For
+            varVal = CByte(goRead(offset + (i * 8) + 4, 1))
+            aRandoSet(varEnum) = varVal
+        Next
+    End Sub
+
     Private Sub attachToBizHawk()
         emulator = String.Empty
         If Not IS_64BIT Then Exit Sub
@@ -16172,6 +16240,10 @@ Public Class frmTrackerOfTime
         If isSoH Then
             endianFlip(items)
             endianFlip(quantity)
+            If Mid(items, 1, 8) = "00000000" Then
+                lastFirstEnum = 255
+                Exit Sub
+            End If
         End If
         ' Storing items to an easy-to-scan string for logic detection
         allItems = String.Empty
