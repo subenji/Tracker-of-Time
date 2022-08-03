@@ -1154,7 +1154,7 @@ Public Class frmTrackerOfTime
         stringKeys = stringKeys & Mid(tempKeys, 1, 2) & Mid(tempKeys, 7, 2)
 
         ' Grab keys for Ganon's Castle
-        tempKeys = Hex(goRead(If(isSoH, soh.SAV(&HC9), &H11A698)))
+        tempKeys = Hex(goRead(If(isSoH, soh.SAV(&HCC), &H11A698)))
 
         ' Make sure all leading 0's are put back
         fixHex(tempKeys)
@@ -2588,7 +2588,7 @@ Public Class frmTrackerOfTime
                         Case 7 To 11, 16 To 21, 23, 29 ' 3F
                             aIconLoc(0) = "3701"
                             aIconPos.Add(New Point(136, 244))
-                            aIconLoc(1) = "3511"
+                            aIconLoc(1) = "5511"
                             aIconPos.Add(New Point(162, 349))
                             aIconLoc(2) = "3715"
                             aIconPos.Add(New Point(315, 100))
@@ -3224,7 +3224,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(412, 240))
                 aIconLoc(8) = "6411"
                 aIconPos.Add(New Point(428, 240))
-                aIconLoc(9) = "6404"
+                aIconLoc(9) = locSwap(17)
                 aIconPos.Add(New Point(312, 244))
                 aIconLoc(10) = "8205"
                 aIconPos.Add(New Point(234, 241))
@@ -3541,7 +3541,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(294, 31))
                 aIconLoc(3) = "4623"
                 aIconPos.Add(New Point(288, 185))
-                aIconLoc(4) = "6008"
+                aIconLoc(4) = locSwap(15)
                 aIconPos.Add(New Point(336, 41))
                 aIconLoc(5) = "8125"
                 aIconPos.Add(New Point(233, 214))
@@ -3647,7 +3647,7 @@ Public Class frmTrackerOfTime
                 aIconLoc(15) = "9606"
                 aIconPos.Add(New Point(394, 354))
             Case 100 ' OGC
-                aIconLoc(0) = "008"
+                aIconLoc(0) = locSwap(16)
                 aIconPos.Add(New Point(460, 165))
                 aIconLoc(1) = "8116"
                 aIconPos.Add(New Point(355, 168))
@@ -4456,7 +4456,12 @@ Public Class frmTrackerOfTime
         ' EV: LH Restored
         setLoc("C04", checkBit(arrSingles(7), 25))
         ' Deliver Zelda's Letter | Unlock Mask Shoppe
-        setLoc("C05", checkBit(arrSingles(8), 6))
+        If isSoH And aRandoSet(2) = 1 Then
+            ' SoH handles Mask Shoppe differently if Kakariko Gate is set to Open. It gets tied to Zelda's Letter
+            setLoc("C05", checkLoc("6416"))
+        Else
+            setLoc("C05", checkBit(arrSingles(8), 6))
+        End If
 
         ' Bombchu's in Logic setting
         Dim updateSetting As Boolean = False
@@ -4508,10 +4513,22 @@ Public Class frmTrackerOfTime
         ' Kokiri Forest setting
         If Not aAddresses(15) = 0 Then
             Dim tempRead As Byte = CByte(goRead(aAddresses(15), 1))
-            ' 0 and 1 are 'Open' and 'Closed Deku', both resulting in the KF being open for out settings, since the tracker auto-detects Mido at the Deku Tree
+            ' 0 and 1 are 'Open' and 'Closed Deku', both resulting in the KF being open for our settings, since the tracker auto-detects Mido at the Deku Tree
             ' 2 is 'Closed' and the only one where the kid by the exit is there
             Select Case tempRead
                 Case 0, 1
+                    updateSetting = True
+                Case Else
+                    updateSetting = False
+            End Select
+            If Not My.Settings.setOpenKF = updateSetting Then
+                My.Settings.setOpenKF = updateSetting
+                updateSettingsPanel()
+            End If
+        ElseIf isSoH Then
+            Select Case aRandoSet(1)
+                ' 1 and 2 are 'Open' and 'Closed Deku'
+                Case 1, 2
                     updateSetting = True
                 Case Else
                     updateSetting = False
@@ -4537,8 +4554,22 @@ Public Class frmTrackerOfTime
                 My.Settings.setOpenZF = updateSetting
                 updateSettingsPanel()
             End If
+        ElseIf isSoH Then
+            Select Case aRandoSet(4)
+                Case 2
+                    ' 0 is 'Normal' ZF (aka Closed)
+                    updateSetting = False
+                Case Else
+                    ' 1 and 2 are 'Adult' and 'Open' ZF
+                    updateSetting = True
+            End Select
+            If Not My.Settings.setOpenZF = updateSetting Then
+                My.Settings.setOpenZF = updateSetting
+                updateSettingsPanel()
+            End If
         End If
     End Sub
+
     Private Sub parseChestData(ByVal loc As Integer)
         Dim foundChests As Double = arrChests(loc)
         Dim compareTo As Double = 2147483648
@@ -5141,7 +5172,7 @@ Public Class frmTrackerOfTime
         End Select
     End Function
 
-    Private Sub stopScanning()
+    Public Sub stopScanning()
         keepRunning = False
         tmrAutoScan.Enabled = False
         tmrFastScan.Enabled = False
@@ -5422,8 +5453,8 @@ Public Class frmTrackerOfTime
     Private Sub updateEverything()
         If checkZeldaz() = 2 And isLoadedGame() Then
             If isSoH Then getSoHRandoSettings()
-            getWarps()
             getRainbowBridge()
+            getWarps()
             changeScrubs()
             'updateItems()
             'updateQuestItems()
@@ -5534,11 +5565,11 @@ Public Class frmTrackerOfTime
         'MsgBox(checkLoc("11806").ToString)
         'Dim test As Integer = goRead(arrLocation(118))
         'MsgBox(Hex(test))
-        'dump()
-        Dim test As String = Hex(goRead(arrLocation(121)))
-        For Each k In aKeys
-            If k.loc = "12102" Then MsgBox(Hex(arrLocation(121)) & ": " & test & ": " & checkLoc("12102").ToString)
-        Next
+        dump()
+        'Dim test As String = Hex(goRead(arrLocation(121)))
+        'For Each k In aKeys
+        'If k.loc = "12102" Then MsgBox(Hex(arrLocation(121)) & ": " & test & ": " & checkLoc("12102").ToString)
+        'Next
 
 
         If False Then
@@ -8366,11 +8397,16 @@ Public Class frmTrackerOfTime
                     Dim tempValue As Integer = CInt(Val(tempString.Replace("L", "")))
                     canDoThis = False
                     Select Case tempValue
+                        Case Is < 100
+                            ' Anything less than 3 digits will be a locSwap()
+                            If checkLoc(locSwap(tempValue)) Then canDoThis = True
                         Case 7706 To 7711
+                            ' Song swarps need to make sure that rando warps is not enabled
                             If Not bSongWarps Then
                                 If checkLoc(tempValue.ToString) Then canDoThis = True
                             End If
                         Case Else
+                            ' All else is just the basic check
                             If checkLoc(tempValue.ToString) Then canDoThis = True
                     End Select
                     If canDoThis Then
@@ -9334,7 +9370,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = "6404"
+            .loc = locSwap(17)
             .area = "KV"
             .zone = 15
             .name = "Song from Shiek"
@@ -9542,7 +9578,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = "6008"
+            .loc = locSwap(15)
             .area = "DMT"
             .zone = 21
             .name = "Help Biggoron"
@@ -10548,7 +10584,7 @@ Public Class frmTrackerOfTime
         ' 53 OGC Great Fairy Fountain
 
         With aKeys(tk)
-            .loc = "008"
+            .loc = locSwap(16)
             .area = "OGC"
             .zone = 53
             .name = "OGC Great Fairy Fountain"
@@ -10789,7 +10825,7 @@ Public Class frmTrackerOfTime
             .area = "QM"
             .zone = 10
             .name = "Sell Bunny Hood"
-            .logic = "YLL6910LL6625Q0007"
+            .logic = "YLL6910LLLLL9Q0007"
         End With
         inc(tk)
     End Sub
@@ -15274,6 +15310,11 @@ Public Class frmTrackerOfTime
     End Sub
     Private Sub fixHex(ByRef hex As String, Optional digits As Byte = 8)
         ' Small sub for fixing hex digits
+        If hex.Length > digits Then
+            hex = Mid(hex, hex.Length - digits + 1)
+            Return
+        End If
+
         While hex.Length < digits
             hex = "0" & hex
         End While
@@ -15563,6 +15604,7 @@ Public Class frmTrackerOfTime
 
         If wasSoH = False Then
             soh.sohSetup(romAddrStart64)
+            getSoHRandoSettings()
             redirectChecks(False)
         End If
         wasSoH = True
@@ -15586,12 +15628,15 @@ Public Class frmTrackerOfTime
             locSwap(12) = "6810"    ' GF Desert
             locSwap(13) = "6814"    ' Deku Theatre Skull Mask
             locSwap(14) = "6830"    ' Shooting Gallery Adult
+            locSwap(15) = "6008"    ' Help Biggoron
+            locSwap(16) = "008"     ' OGC Great Fairy Fountain
+            locSwap(17) = "6404"    ' Song from Shiek Kakariko
         Else
             locSwap(0) = "12202"    ' DMC Great Fairy
             locSwap(1) = "12201"    ' DMT Great Fairy
             locSwap(2) = "2231"     ' Dampe's Gravedigging
             locSwap(3) = "5231"     ' Shoot the Sun
-            locSwap(4) = "5630"     ' Darunia's Joy
+            locSwap(4) = "5930"     ' Darunia's Joy
             locSwap(5) = "12330"    ' Light Arrows Cutscene Reward
             locSwap(6) = "11931"    ' Song from Saria
             locSwap(7) = "11831"    ' Song from Malon
@@ -15602,6 +15647,9 @@ Public Class frmTrackerOfTime
             locSwap(12) = "12103"   ' GF Desert
             locSwap(13) = "4631"    ' Deku Theatre Skull Mask
             locSwap(14) = "12031"   ' Shooting Gallery Adult
+            locSwap(15) = "5831"    ' Help Biggoron
+            locSwap(16) = "12203"    ' OGC Great Fairy Fountain
+            locSwap(17) = "6626"    ' Song from Shiek Kakariko
         End If
 
         ' Clear all the keys
@@ -18311,6 +18359,32 @@ Public Class frmTrackerOfTime
         End Select
     End Sub
     Private Sub getRainbowBridge()
+        ' Start with checking for SoH since things are handled differently
+        If isSoH Then
+            Select Case aRandoSet(6)
+                Case 0  ' Open
+                    rainbowBridge(0) = 0
+                Case 1  ' Vanilla
+                    rainbowBridge(0) = 4
+                Case 2  ' Stone
+                    rainbowBridge(0) = 3
+                    rainbowBridge(1) = aRandoSet(7)
+                Case 3  ' Medallions
+                    rainbowBridge(0) = 1
+                    rainbowBridge(1) = aRandoSet(8)
+                Case 4 ' Rewards (aka Dungeons for normal randos)
+                    rainbowBridge(0) = 2
+                    rainbowBridge(1) = aRandoSet(9)
+                Case 5  ' Dungeons (when blue portal is used, not used in normal randos)
+                    rainbowBridge(0) = 2    ' TODO: Track blue portals used. For now, make it Rewards and add one to the count
+                    rainbowBridge(1) = CByte(aRandoSet(10) + 1)
+                Case 6  ' Tokens
+                    rainbowBridge(0) = 5
+                    rainbowBridge(1) = aRandoSet(11)
+            End Select
+            Exit Sub
+        End If
+
         ' If Not detected, then set to default
         If aAddresses(4) = 0 Then
             rainbowBridge(0) = 4
@@ -18961,13 +19035,22 @@ Public Class frmTrackerOfTime
         Dim sHex As String = String.Empty
         ' Next read all the values of arrLocation
         For i = 0 To arrLocation.Length - 1
+            If isSoH And i = 84 Then i = 100
             sHex = Hex(goRead(arrLocation(i)))
             fixHex(sHex)
-            sText = sText & i.ToString & ": " & sHex & vbCrLf
+            sText &= i.ToString & ": " & sHex & vbCrLf
         Next
         ' Add in the single checks that do not make it to arrLocations, mainly Bean Plants and a few events
-        sText = sText & checkLoc("B0") & checkLoc("B1") & checkLoc("B2") & checkLoc("B3") & checkLoc("B4") & vbCrLf
-        sText = sText & checkLoc("C00") & checkLoc("C01") & checkLoc("C02") & checkLoc("C03") & checkLoc("C04") & checkLoc("C05")
+        sText &= vbCrLf & checkLoc("B0") & checkLoc("B1") & checkLoc("B2") & checkLoc("B3") & checkLoc("B4") & vbCrLf
+        sText &= checkLoc("C00") & checkLoc("C01") & checkLoc("C02") & checkLoc("C03") & checkLoc("C04") & checkLoc("C05") & vbCrLf & vbCrLf
+        sText &= "Adult:" & vbCrLf
+        For i = 0 To aReachA.Length - 1
+            sText &= i.ToString & ": " & aReachA(i).ToString & vbCrLf
+        Next
+        sText &= vbCrLf & "Young:" & vbCrLf
+        For i = 0 To aReachY.Length - 1
+            sText &= i.ToString & ": " & aReachY(i).ToString & vbCrLf
+        Next
         Clipboard.SetText(sText)
     End Sub
 End Class
