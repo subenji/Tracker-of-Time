@@ -11,7 +11,7 @@ Public Class frmTrackerOfTime
     Private Const PROCESS_ALL_ACCESS As Integer = &H1F0FFF
     Private Const CHECK_COUNT As Byte = 124
     Private Const IS_64BIT As Boolean = True
-    Private Const VER As String = "4.0.7"
+    Private Const VER As String = "4.1.0"
     Private p As Process = Nothing
 
     ' Variables used to determine what emulator is connected, its state, and its starting memory address
@@ -22,7 +22,7 @@ Public Class frmTrackerOfTime
     Private zeldazFails As Integer = 0
     Private isSoH As Boolean = False
     Private wasSoH As Boolean = False
-    Private locSwap(30) As String
+    Private locSwap(18) As String
 
     ' Variables for a variety of rom info used in the scan
     Private pedestalRead As Byte = 0
@@ -137,7 +137,8 @@ Public Class frmTrackerOfTime
         If keyData = aCheat(iCheat) Then
             incB(iCheat)
             If iCheat = aCheat.Length Then
-                btnTest.Visible = True
+                showMenuButtons(True)
+                'btnTest.Visible = True
                 'Button2.Visible = True
                 iCheat = 0
             End If
@@ -147,8 +148,16 @@ Public Class frmTrackerOfTime
         Return MyBase.ProcessCmdKey(msg, keyData)
     End Function
 
+    Private Sub showMenuButtons(ByVal setTo As Boolean)
+        ' Hide or show 'Scan' and 'Debug' button
+        ScanToolStripMenuItem.Visible = setTo
+        DumpToolStripMenuItem.Visible = setTo
+        ResetToolStripMenuItem.Margin = New Padding(0, 0, If(setTo, 24, 221), 0)
+    End Sub
+
     ' On load, populate the locations array
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+        showMenuButtons(False)
         If My.Settings.setFirstTime Then
             showSetting = True
             updateShowSettings()
@@ -3156,7 +3165,7 @@ Public Class frmTrackerOfTime
             Case 67 ' ToT
                 aIconLoc(0) = "6405"
                 aIconPos.Add(New Point(270, 115))
-                aIconLoc(1) = locSwap(5)
+                aIconLoc(1) = locSwap(12)
                 aIconPos.Add(New Point(270, 299))
             Case 81 ' HF
                 aIconLoc(0) = "4600"
@@ -3171,7 +3180,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(204, 99))
                 aIconLoc(5) = "103"
                 aIconPos.Add(New Point(315, 66))
-                aIconLoc(6) = locSwap(9)
+                aIconLoc(6) = locSwap(11)
                 aIconPos.Add(New Point(299, 66))
                 aIconLoc(7) = "8016"
                 aIconPos.Add(New Point(132, 185))
@@ -3218,13 +3227,13 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(332, 198))
                 aIconLoc(5) = "1801"
                 aIconPos.Add(New Point(306, 345))
-                aIconLoc(6) = locSwap(14)
+                aIconLoc(6) = locSwap(18)
                 aIconPos.Add(New Point(315, 288))
                 aIconLoc(7) = "2001"
                 aIconPos.Add(New Point(412, 240))
                 aIconLoc(8) = "6411"
                 aIconPos.Add(New Point(428, 240))
-                aIconLoc(9) = locSwap(17)
+                aIconLoc(9) = locSwap(7)
                 aIconPos.Add(New Point(312, 244))
                 aIconLoc(10) = "8205"
                 aIconPos.Add(New Point(234, 241))
@@ -3262,7 +3271,7 @@ Public Class frmTrackerOfTime
                     aIconPos.Add(New Point(337, 142))
                 End If
             Case 83 ' GY
-                aIconLoc(0) = locSwap(2)
+                aIconLoc(0) = locSwap(3)
                 aIconPos.Add(New Point(156, 203))
                 aIconLoc(1) = "4800"
                 aIconPos.Add(New Point(178, 214))
@@ -3272,7 +3281,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(226, 231))
                 aIconLoc(4) = "4900"
                 aIconPos.Add(New Point(286, 201))
-                aIconLoc(5) = locSwap(8)
+                aIconLoc(5) = locSwap(10)
                 aIconPos.Add(New Point(286, 217))
                 aIconLoc(6) = "5000"
                 aIconPos.Add(New Point(171, 152))
@@ -3342,7 +3351,7 @@ Public Class frmTrackerOfTime
             Case 86 ' SFM
                 aIconLoc(0) = "4617"
                 aIconPos.Add(New Point(262, 345))
-                aIconLoc(1) = locSwap(6)
+                aIconLoc(1) = locSwap(8)
                 aIconPos.Add(New Point(265, 64))
                 aIconLoc(2) = "6400"
                 aIconPos.Add(New Point(281, 64))
@@ -3367,7 +3376,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(231, 172))
                 aIconLoc(6) = "6800"
                 aIconPos.Add(New Point(247, 172))
-                aIconLoc(7) = locSwap(3)
+                aIconLoc(7) = locSwap(4)
                 aIconPos.Add(New Point(361, 310))
                 aIconLoc(8) = "8216"
                 aIconPos.Add(New Point(239, 156))
@@ -3405,7 +3414,7 @@ Public Class frmTrackerOfTime
                     aIconPos.Add(New Point(398, 305))
                 End If
             Case 89 ' ZF
-                aIconLoc(0) = locSwap(10)
+                aIconLoc(0) = locSwap(13)
                 aIconPos.Add(New Point(378, 380))
                 aIconLoc(1) = "2501"
                 aIconPos.Add(New Point(424, 172))
@@ -3453,9 +3462,9 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(318, 239))
                 aIconLoc(6) = "6806"
                 aIconPos.Add(New Point(169, 217))
-                aIconLoc(7) = locSwap(13)
+                aIconLoc(7) = locSwap(16)
                 aIconPos.Add(New Point(227, 118))
-                aIconLoc(8) = locSwap(18)
+                aIconLoc(8) = locSwap(17)
                 aIconPos.Add(New Point(243, 118))
                 aIconLoc(9) = "8108"
                 aIconPos.Add(New Point(155, 278))
@@ -3477,7 +3486,7 @@ Public Class frmTrackerOfTime
                 aIconLoc(17) = "6909"
                 aIconPos.Add(New Point(185, 217))
             Case 92 ' DC
-                aIconLoc(0) = locSwap(12)
+                aIconLoc(0) = locSwap(15)
                 aIconPos.Add(New Point(321, 96))
                 aIconLoc(1) = "6628"
                 aIconPos.Add(New Point(124, 190))
@@ -3526,7 +3535,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(139, 87))
                 aIconLoc(2) = "6409"
                 aIconPos.Add(New Point(155, 87))
-                aIconLoc(3) = locSwap(11)
+                aIconLoc(3) = locSwap(14)
                 aIconPos.Add(New Point(334, 246))
                 aIconLoc(4) = "8117"
                 aIconPos.Add(New Point(223, 141))
@@ -3537,11 +3546,11 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(286, 239))
                 aIconLoc(1) = "2830"
                 aIconPos.Add(New Point(241, 198))
-                aIconLoc(2) = locSwap(1)
+                aIconLoc(2) = locSwap(2)
                 aIconPos.Add(New Point(294, 31))
                 aIconLoc(3) = "4623"
                 aIconPos.Add(New Point(288, 185))
-                aIconLoc(4) = locSwap(15)
+                aIconLoc(4) = locSwap(5)
                 aIconPos.Add(New Point(336, 41))
                 aIconLoc(5) = "8125"
                 aIconPos.Add(New Point(233, 214))
@@ -3560,7 +3569,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(300, 280))
                 aIconLoc(2) = "2908"
                 aIconPos.Add(New Point(242, 198))
-                aIconLoc(3) = locSwap(0)
+                aIconLoc(3) = locSwap(1)
                 aIconPos.Add(New Point(187, 269))
                 aIconLoc(4) = "6401"
                 aIconPos.Add(New Point(237, 160))
@@ -3589,7 +3598,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(273, 254))
                 aIconLoc(5) = "3031"
                 aIconPos.Add(New Point(266, 196))
-                aIconLoc(6) = locSwap(4)
+                aIconLoc(6) = locSwap(6)
                 aIconPos.Add(New Point(273, 58))
                 aIconLoc(7) = "3001"
                 aIconPos.Add(New Point(148, 345))
@@ -3618,7 +3627,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(164, 364))
                 aIconLoc(1) = "6818"
                 aIconPos.Add(New Point(340, 85))
-                aIconLoc(2) = locSwap(7)
+                aIconLoc(2) = locSwap(9)
                 aIconPos.Add(New Point(251, 229))
                 aIconLoc(3) = "6208"
                 aIconPos.Add(New Point(267, 229))
@@ -3647,7 +3656,7 @@ Public Class frmTrackerOfTime
                 aIconLoc(15) = "9606"
                 aIconPos.Add(New Point(394, 354))
             Case 100 ' OGC
-                aIconLoc(0) = locSwap(16)
+                aIconLoc(0) = locSwap(0)
                 aIconPos.Add(New Point(460, 165))
                 aIconLoc(1) = "8116"
                 aIconPos.Add(New Point(355, 168))
@@ -4159,7 +4168,12 @@ Public Class frmTrackerOfTime
             If Not emulator = String.Empty Then
                 Me.Text = "Tracker of Time v" & VER & " (" & emulator & ")"
                 Select Case LCase(emulator)
-                    Case "emuhawk", "rmg", "mupen64plus-gui", "retroarch - mupen64plus", "retroarch - parallel", "modloader64-gui", "soh"
+                    Case "emuhawk", "rmg", "mupen64plus-gui", "retroarch - mupen64plus", "retroarch - parallel", "modloader64-gui"
+                        ' SoH is separate from the others so they can test wasSoH in fixing the keys
+                        emulator = "variousX64"
+                        If wasSoH Then redirectChecks(True)
+                        wasSoH = False
+                    Case "soh"
                         emulator = "variousX64"
                 End Select
             End If
@@ -5176,7 +5190,7 @@ Public Class frmTrackerOfTime
         keepRunning = False
         tmrAutoScan.Enabled = False
         tmrFastScan.Enabled = False
-        AutoScanToolStripMenuItem.Text = "Auto Scan"
+        AutoScanToolStripMenuItem.Text = "Start"
         Me.Text = "Tracker of Time v" & VER
         emulator = String.Empty
     End Sub
@@ -5316,7 +5330,6 @@ Public Class frmTrackerOfTime
         If tmrAutoScan.Enabled = False Then
             tmrFastScan.Enabled = True
             tmrAutoScan.Enabled = True
-            ' checkMQs()
         Else
             stopScanning()
         End If
@@ -6280,7 +6293,7 @@ Public Class frmTrackerOfTime
                 addAreaExit(6, 5, asAdult) 'addArea(9, asAdult)
                 addAreaExit(6, 6, asAdult) 'addArea(42, asAdult)
                 addAreaExit(6, 3, asAdult) 'addArea(44, asAdult)
-                If asAdult And item("epona") And item("bow") And item("bottle") Then addArea(59, asAdult)
+                If asAdult And item("bow") And item("bottle") Then addArea(59, asAdult)
             Case 8
                 ' LW Between Bridge
                 addArea(4, asAdult)
@@ -7617,7 +7630,6 @@ Public Class frmTrackerOfTime
         ' Depending on if as an adult or not, focus on the correct array
         Dim realArea As Byte = aExitMap(area)(ext)
         addArea(realArea, asAdult)
-
     End Sub
 
     Private Function dungeonKeyCounter(ByVal dungeon As Byte, ByVal theseDoors As String) As Boolean
@@ -8750,7 +8762,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tK)
         With aKeys(tK)
-            .loc = locSwap(13)
+            .loc = locSwap(16)
             .area = "LW"
             .zone = 3
             .name = "Deku Theatre Skull Mask"
@@ -8758,7 +8770,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tK)
         With aKeys(tK)
-            .loc = locSwap(18)
+            .loc = locSwap(17)
             .area = "LW"
             .zone = 3
             .name = "Deku Theatre Mask of Truth"
@@ -8864,7 +8876,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(6)
+            .loc = locSwap(8)
             .area = "SFM"
             .zone = 5
             .name = "Song from Saria"
@@ -8959,7 +8971,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(9)
+            .loc = locSwap(11)
             .area = "HF"
             .zone = 7
             .name = "Song from Ocarina of Time"
@@ -9024,7 +9036,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(7)
+            .loc = locSwap(9)
             .area = "LLR"
             .zone = 9
             .name = "Song from Malon"
@@ -9215,7 +9227,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(5)
+            .loc = locSwap(12)
             .area = "TT"
             .zone = 11
             .name = "Light Arrows Cutscene"
@@ -9259,7 +9271,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(11)
+            .loc = locSwap(14)
             .area = "HC"
             .zone = 54
             .name = "HC Great Fairy Fountain"
@@ -9346,7 +9358,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(14)
+            .loc = locSwap(18)
             .area = "KV"
             .zone = 15
             .name = "Shooting Gallery"
@@ -9370,7 +9382,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(17)
+            .loc = locSwap(7)
             .area = "KV"
             .zone = 15
             .name = "Song from Shiek"
@@ -9453,7 +9465,7 @@ Public Class frmTrackerOfTime
         ' 19 GY Upper
 
         With aKeys(tk)
-            .loc = locSwap(2)
+            .loc = locSwap(3)
             .area = "GY"
             .zone = 18
             .name = "Dampe's Gravedigging Tour (N)"
@@ -9493,7 +9505,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(8)
+            .loc = locSwap(10)
             .area = "GY"
             .zone = 18
             .name = "Song from Royal Family's Tomb"
@@ -9562,7 +9574,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(1)
+            .loc = locSwap(2)
             .area = "DMT"
             .zone = 21
             .name = "Great Fairy Fountain"
@@ -9578,7 +9590,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(15)
+            .loc = locSwap(5)
             .area = "DMT"
             .zone = 21
             .name = "Help Biggoron"
@@ -9671,7 +9683,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(0)
+            .loc = locSwap(1)
             .area = "DMC"
             .zone = 24
             .name = "Great Fairy Fountain"
@@ -9804,7 +9816,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(4)
+            .loc = locSwap(6)
             .area = "GC"
             .zone = 31
             .name = "Darunia's Joy"
@@ -10064,7 +10076,7 @@ Public Class frmTrackerOfTime
         ' 41 ZF Ice Cavern Ledge
 
         With aKeys(tk)
-            .loc = locSwap(10)
+            .loc = locSwap(13)
             .area = "ZF"
             .zone = 40
             .name = "Great Fairy Fountain"
@@ -10177,7 +10189,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tk)
         With aKeys(tk)
-            .loc = locSwap(3)
+            .loc = locSwap(4)
             .area = "LH"
             .zone = 42
             .name = "Shoot the Sun"
@@ -10504,7 +10516,7 @@ Public Class frmTrackerOfTime
         ' 50 DC
 
         With aKeys(tk)
-            .loc = locSwap(12)
+            .loc = locSwap(15)
             .area = "DC"
             .zone = 50
             .name = "Great Fairy Fountain"
@@ -10584,7 +10596,7 @@ Public Class frmTrackerOfTime
         ' 53 OGC Great Fairy Fountain
 
         With aKeys(tk)
-            .loc = locSwap(16)
+            .loc = locSwap(0)
             .area = "OGC"
             .zone = 53
             .name = "OGC Great Fairy Fountain"
@@ -10825,7 +10837,7 @@ Public Class frmTrackerOfTime
             .area = "QM"
             .zone = 10
             .name = "Sell Bunny Hood"
-            .logic = "YLL6910LLLLL9Q0007"
+            .logic = "YLL6910LLLL11Q0007"
         End With
         inc(tk)
     End Sub
@@ -15560,47 +15572,8 @@ Public Class frmTrackerOfTime
 
         isSoH = True
 
-        ' Check if we are changing from non-SoH to SoH, or just reconnecting to SoH again
-        'For Each key In aKeys
-        'Select Case key.loc
-
-        'Case "016"      ' Redirect DMC Great Fairy
-        'key.loc = "12202"
-        'Case "024"      ' Redirect DMT Great Fairy
-        'key.loc = "12201"
-        'Case "2208"     ' Redirect Dampe's Gravedigging
-        'key.loc = "2231"
-        'Case "5200"     ' Redirect Shoot the Sun
-        'key.loc = "5231"
-        'Case "6306"     ' Redirect Darunia's Joy
-        'key.loc = "5630"
-        'Case "6720"     ' Light Arrows Cutscene Reward
-        'key.loc = "12330"
-        'Case "6407"     ' Redirect Song from Saria
-        'key.loc = "11931"
-        'Case "6408"     ' Redirect Song from Malon
-        'key.loc = "11831"
-        'Case "6410"     ' Redirect Sun's Song (you need to check the message twice!!!)
-        'key.loc = "4931"
-        'Case "6625"     ' Redirect Song From Ocarina of Time
-        'key.loc = "12431"
-        'Case "6808"     ' Redirect GF Zora
-        'key.loc = "12101"
-        'Case "6809"     ' Redirect GF Castle (Young)
-        'key.loc = "12102"
-        'Case "6810"     ' Redirect GF Desert
-        'key.loc = "12103"
-        'Case "6814"     ' Redirect Deku Theatre Skull Mask
-        'key.loc = "4631"
-        'Case "6830"     ' Shooting Gallery Adult (Child worked, todo: test child again)
-        'key.loc = "12031"
-
-
-
         '   Case "6828"     ' Redirect Anju's Chickens
         '   key.loc = "7728"
-        'End Select
-        'Next
 
         If wasSoH = False Then
             soh.sohSetup(romAddrStart64)
@@ -15608,46 +15581,55 @@ Public Class frmTrackerOfTime
             redirectChecks(False)
         End If
         wasSoH = True
+        AutoScanToolStripMenuItem.Text = "Squadala"
     End Sub
 
     Private Sub redirectChecks(Optional ByVal regularRando As Boolean = True)
         ' Handles what the locs will be when making and checking keys
         If regularRando Then
-            locSwap(0) = "016"      ' DMC Great Fairy
-            locSwap(1) = "024"      ' DMT Great Fairy
-            locSwap(2) = "2208"     ' Dampe's Gravedigging
-            locSwap(3) = "5200"     ' Shoot the Sun
-            locSwap(4) = "6306"     ' Darunia's Joy
-            locSwap(5) = "6720"     ' Light Arrows Cutscene Reward
-            locSwap(6) = "6407"     ' Song from Saria
-            locSwap(7) = "6408"     ' Song from Malon
-            locSwap(8) = "6410"     ' Sun's Song
-            locSwap(9) = "6625"     ' Song From Ocarina of Time
-            locSwap(10) = "6808"    ' GF Zora
-            locSwap(11) = "6809"    ' GF Castle
-            locSwap(12) = "6810"    ' GF Desert
-            locSwap(13) = "6814"    ' Deku Theatre Skull Mask
-            locSwap(14) = "6830"    ' Shooting Gallery Adult
+            locSwap(0) = "008"      ' OGC Great Fairy Fountain
+            locSwap(1) = "016"      ' DMC Great Fairy
+            locSwap(2) = "024"      ' DMT Great Fairy
+            locSwap(3) = "2208"     ' Dampe's Gravedigging
+            locSwap(4) = "5200"     ' Shoot the Sun
+            locSwap(5) = "6008"     ' Help Biggoron
+            locSwap(6) = "6306"     ' Darunia's Joy
+            locSwap(7) = "6404"     ' Song from Shiek Kakariko
+            locSwap(8) = "6407"     ' Song from Saria
+            locSwap(9) = "6408"     ' Song from Malon
+            locSwap(10) = "6410"    ' Sun's Song
+            locSwap(11) = "6625"    ' Song From Ocarina of Time
+            locSwap(12) = "6720"    ' Light Arrows Cutscene Reward
+            locSwap(13) = "6808"    ' GF Zora
+            locSwap(14) = "6809"    ' GF Castle
+            locSwap(15) = "6810"    ' GF Desert
+            locSwap(16) = "6814"    ' Deku Theatre Skull Mask
+            locSwap(17) = "6815"    ' Deku Theatre Mask of Truth
+            locSwap(18) = "6830"    ' Shooting Gallery Adult
             locSwap(15) = "6008"    ' Help Biggoron
             locSwap(16) = "008"     ' OGC Great Fairy Fountain
             locSwap(17) = "6404"    ' Song from Shiek Kakariko
             locSwap(18) = "6815"    ' Deku Theatre Mask of Truth
         Else
-            locSwap(0) = "12202"    ' DMC Great Fairy
-            locSwap(1) = "12201"    ' DMT Great Fairy
-            locSwap(2) = "2231"     ' Dampe's Gravedigging
-            locSwap(3) = "5231"     ' Shoot the Sun
-            locSwap(4) = "5930"     ' Darunia's Joy
-            locSwap(5) = "12330"    ' Light Arrows Cutscene Reward
-            locSwap(6) = "11931"    ' Song from Saria
-            locSwap(7) = "11831"    ' Song from Malon
-            locSwap(8) = "4931"     ' Sun's Song
-            locSwap(9) = "12431"    ' Song From Ocarina of Time
-            locSwap(10) = "12101"   ' GF Zora
-            locSwap(11) = "12102"   ' GF Castle
-            locSwap(12) = "12103"   ' GF Desert
-            locSwap(13) = "4631"    ' Deku Theatre Skull Mask
-            locSwap(14) = "12031"   ' Shooting Gallery Adult
+            locSwap(0) = "12203"    ' OGC Great Fairy Fountain
+            locSwap(1) = "12202"    ' DMC Great Fairy
+            locSwap(2) = "12201"    ' DMT Great Fairy
+            locSwap(3) = "2231"     ' Dampe's Gravedigging
+            locSwap(4) = "5231"     ' Shoot the Sun
+            locSwap(5) = "5831"     ' Help Biggoron
+            locSwap(6) = "5930"     ' Darunia's Joy
+            locSwap(7) = "6626"     ' Song from Shiek Kakariko
+            locSwap(8) = "11931"    ' Song from Saria
+            locSwap(9) = "11831"    ' Song from Malon
+            locSwap(10) = "4931"    ' Sun's Song
+            locSwap(11) = "12431"   ' Song From Ocarina of Time
+            locSwap(12) = "12330"   ' Light Arrows Cutscene Reward
+            locSwap(13) = "12101"   ' GF Zora
+            locSwap(14) = "12102"   ' GF Castle
+            locSwap(15) = "12103"   ' GF Desert
+            locSwap(16) = "4631"    ' Deku Theatre Skull Mask
+            locSwap(17) = "4630"    ' Deku Theatre Mask of Truth
+            locSwap(18) = "12031"   ' Shooting Gallery Adult
             locSwap(15) = "5831"    ' Help Biggoron
             locSwap(16) = "12203"    ' OGC Great Fairy Fountain
             locSwap(17) = "6626"    ' Song from Shiek Kakariko
@@ -17493,14 +17475,6 @@ Public Class frmTrackerOfTime
                             ' If not true, empty out the square
                             art.FillRectangle(brBack, 4, startY + 2, 9, 9)
                         End If
-
-                        'Case "ltb"
-                        ' ltb are Labels acting like a Track Bar for settings with a variety of options
-                        'Dim p As New Pen(Brushes.Black, 4)
-                        'p.StartCap = Drawing2D.LineCap.ArrowAnchor
-
-
-
                 End Select
             End With
         Next
@@ -17673,14 +17647,23 @@ Public Class frmTrackerOfTime
         goScan(False)
     End Sub
     Private Sub AutoScanToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AutoScanToolStripMenuItem.Click
-        AutoScanToolStripMenuItem.Text = "Stop"
-        goScan(True)
+        If tmrAutoScan.Enabled Then
+            stopScanning()
+        Else
+            AutoScanToolStripMenuItem.Text = "Stop"
+            goScan(True)
+        End If
+    End Sub
+    Private Sub DumpToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles DumpToolStripMenuItem.Click
+        dump()
     End Sub
     Private Sub ResetToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ResetToolStripMenuItem.Click
         pnlDungeonItems.BackgroundImage = My.Resources.backgroundDungeonItems
         stopScanning()
         pbxPoH.Image = My.Resources.poh0
         pbxMap.Image = My.Resources.mapBlank
+        pbxSpawnAdult.Image = My.Resources.spawnLocations
+        pbxSpawnYoung.Image = My.Resources.spawnLocations
         rtbOutputLeft.Clear()
         rtbOutputRight.Clear()
         lastRoomScan = 0
@@ -19061,6 +19044,9 @@ Public Class frmTrackerOfTime
             sText &= i.ToString & ": " & aReachY(i).ToString & vbCrLf
         Next
         Clipboard.SetText(sText)
+        MsgBox("Some variables dumped to clipboard. Please send them to" & vbCrLf & _
+                "me on Discord (Selene#0230), along with a screenshot of the" & vbCrLf & _
+                "tracker, and a description of the problem you are having.")
     End Sub
 End Class
 
@@ -19079,7 +19065,7 @@ Public Class custMenu
             Dim cBack As Color = CType(IIf(.Selected, highlight, backColour), Color)
             e.Graphics.FillRectangle(New SolidBrush(cBack), New Rectangle(Point.Empty, .Size))
             Select Case LCase(.Text)
-                Case "scan", "auto scan", "stop", "reset", "exit", "themes", "settings >", "settings <", "mini-map"
+                Case "start", "stop", "squadala", "reset", "scan", "dump", "exit", "themes", "settings >", "settings <", "mini-map"
                     e.Graphics.DrawRectangle(New Pen(foreColour, 1), New Rectangle(0, 0, .Width - 1, .Height - 1))
             End Select
             .ForeColor = foreColour
