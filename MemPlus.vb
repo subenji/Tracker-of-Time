@@ -69,6 +69,7 @@ Module MemPlus
             End If
             Return True
         Catch ex As Exception
+            frmTrackerOfTime.stopScanning()
             Return False
         End Try
     End Function

@@ -3455,7 +3455,7 @@ Public Class frmTrackerOfTime
                 aIconPos.Add(New Point(169, 217))
                 aIconLoc(7) = locSwap(13)
                 aIconPos.Add(New Point(227, 118))
-                aIconLoc(8) = "6815"
+                aIconLoc(8) = locSwap(18)
                 aIconPos.Add(New Point(243, 118))
                 aIconLoc(9) = "8108"
                 aIconPos.Add(New Point(155, 278))
@@ -8758,7 +8758,7 @@ Public Class frmTrackerOfTime
         End With
         inc(tK)
         With aKeys(tK)
-            .loc = "6815"
+            .loc = locSwap(18)
             .area = "LW"
             .zone = 3
             .name = "Deku Theatre Mask of Truth"
@@ -15631,6 +15631,7 @@ Public Class frmTrackerOfTime
             locSwap(15) = "6008"    ' Help Biggoron
             locSwap(16) = "008"     ' OGC Great Fairy Fountain
             locSwap(17) = "6404"    ' Song from Shiek Kakariko
+            locSwap(18) = "6815"    ' Deku Theatre Mask of Truth
         Else
             locSwap(0) = "12202"    ' DMC Great Fairy
             locSwap(1) = "12201"    ' DMT Great Fairy
@@ -15650,6 +15651,7 @@ Public Class frmTrackerOfTime
             locSwap(15) = "5831"    ' Help Biggoron
             locSwap(16) = "12203"    ' OGC Great Fairy Fountain
             locSwap(17) = "6626"    ' Song from Shiek Kakariko
+            locSwap(18) = "4630"    ' Deku Theatre Mask of Truth
         End If
 
         ' Clear all the keys
@@ -17927,6 +17929,11 @@ Public Class frmTrackerOfTime
             aWarps(7) = "5F4"
             bSpawnWarps = False
             bSongWarps = False
+
+            For i = 0 To aReachA.Length - 1
+                aReachA(i) = False
+                aReachY(i) = False
+            Next
         Else
             Dim arrOffsets() As Integer = {&H903D0, &H903E0, &H3AB22E, &H3AB22C, &H3AB232, &H3AB230, &H3AB236, &H3AB234}
             Dim sRead As String = String.Empty
@@ -17960,6 +17967,8 @@ Public Class frmTrackerOfTime
                 bSongWarps = True
             End If
         End If
+
+        'getAge()
 
         For i As Byte = 0 To 7
             Select Case aWarps(i)
